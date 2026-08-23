@@ -1330,24 +1330,8 @@
       <table class="table">
         <thead><tr><th>Vendor</th><th>Product</th><th>Amount</th><th>Status</th><th></th></tr></thead>
         <tbody id="buyerOrdersBody">
-          <tr id="buyerRow1">
-            <td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">CO</div>Chi's Ankara Studio</td>
-            <td>Ankara Weekend Set</td><td>₦24,500</td>
-            <td><span class="pill pill-secured">Shipped</span></td>
-            <td style="display:flex; gap:8px;"><button class="btn btn-navy btn-sm" onclick="showView('buyertracking')">Track Order</button><a style="color:var(--danger); font-weight:600; font-size:12.5px; cursor:pointer;" onclick="showView('disputeform')">Dispute</a></td>
-          </tr>
-          <tr id="buyerRow2">
-            <td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">SV</div>Sneaker Vault NG</td>
-            <td>Air Max Sneakers</td><td>₦52,900</td>
-            <td><span class="pill pill-pending">Preparing</span></td>
-            <td><span style="font-size:12px; color:var(--navy-soft);">Awaiting shipment</span></td>
-          </tr>
-          <tr id="buyerRow3">
-            <td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">GB</div>Glow Beauty Bar</td>
-            <td>Skincare Bundle</td><td>₦18,400</td>
-            <td><span class="pill pill-completed">Completed</span></td>
-            <td><a style="color:var(--green-solid); font-weight:600; font-size:12.5px;">Receipt</a></td>
-          </tr>
+          <tr id="buyerRow1" class="hidden"><td colspan="5"></td></tr>
+          <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No purchases yet — once you buy through a SafeDeal link, it'll show up here.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1692,9 +1676,7 @@
           <table class="table">
             <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
             <tbody>
-              <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">AN</div>Amara N.</td><td>Ankara Weekend Set</td><td>₦24,500</td><td><span class="pill pill-secured">Secured</span></td><td>Jul 24</td></tr>
-              <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">KJ</div>Kelvin J.</td><td>Wireless Earbuds</td><td>₦18,000</td><td><span class="pill pill-completed">Completed</span></td><td>Jul 23</td></tr>
-              <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">BF</div>Blessing F.</td><td>Skincare Bundle</td><td>₦12,300</td><td><span class="pill pill-pending">Pending</span></td><td>Jul 22</td></tr>
+              <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No transactions yet — sales will appear here once buyers start ordering.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1763,9 +1745,7 @@
         <table class="table">
           <thead><tr><th>Link</th><th>Product</th><th>Amount</th><th>Status</th><th></th></tr></thead>
           <tbody>
-            <tr><td><code>.../ankara-weekend-x92k</code></td><td>Ankara Weekend Set</td><td>₦24,500</td><td><span class="pill pill-secured">Secured</span></td><td><button class="btn btn-ghost btn-sm">Copy</button></td></tr>
-            <tr><td><code>.../earbuds-pro-a41z</code></td><td>Wireless Earbuds</td><td>₦18,000</td><td><span class="pill pill-completed">Completed</span></td><td><button class="btn btn-ghost btn-sm">Copy</button></td></tr>
-            <tr><td><code>.../skincare-bundle-q7t</code></td><td>Skincare Bundle</td><td>₦12,300</td><td><span class="pill pill-pending">Pending</span></td><td><button class="btn btn-ghost btn-sm">Copy</button></td></tr>
+            <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No payment links yet — create one to get started.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1841,11 +1821,7 @@
         <table class="table">
           <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Payment Status</th><th>Date</th><th></th></tr></thead>
           <tbody id="txnBody">
-            <tr onclick="openTxn('Amara N.','Ankara Weekend Set','₦24,500','secured','Jul 24, 2026')"><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">AN</div>Amara N.</td><td>Ankara Weekend Set</td><td>₦24,500</td><td><span class="pill pill-secured">Secured</span></td><td>Jul 24</td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">View</a></td></tr>
-            <tr onclick="openTxn('Kelvin J.','Wireless Earbuds','₦18,000','completed','Jul 23, 2026')"><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">KJ</div>Kelvin J.</td><td>Wireless Earbuds</td><td>₦18,000</td><td><span class="pill pill-completed">Completed</span></td><td>Jul 23</td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">View</a> <a style="color:var(--green-solid); font-weight:600; font-size:13px; margin-left:8px;" onclick="event.stopPropagation(); openVendorReviewModal('Kelvin J.')">Leave a review</a></td></tr>
-            <tr onclick="openTxn('Blessing F.','Skincare Bundle','₦12,300','pending','Jul 22, 2026')"><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">BF</div>Blessing F.</td><td>Skincare Bundle</td><td>₦12,300</td><td><span class="pill pill-pending">Pending</span></td><td>Jul 22</td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">View</a></td></tr>
-            <tr onclick="openTxn('Ifeanyi O.','Bluetooth Speaker','₦31,000','disputed','Jul 20, 2026')"><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">IO</div>Ifeanyi O.</td><td>Bluetooth Speaker</td><td>₦31,000</td><td><span class="pill pill-disputed">Disputed</span></td><td>Jul 20</td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">View</a></td></tr>
-            <tr onclick="openTxn('Nkechi P.','Wig Bundle','₦45,000','cancelled','Jul 18, 2026')"><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">NP</div>Nkechi P.</td><td>Wig Bundle</td><td>₦45,000</td><td><span class="pill pill-cancelled">Cancelled</span></td><td>Jul 18</td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">View</a></td></tr>
+            <tr><td colspan="6" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No transactions yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1885,9 +1861,7 @@
         <table class="table">
           <thead><tr><th>Order</th><th>Buyer</th><th>Product</th><th>Stage</th></tr></thead>
           <tbody>
-            <tr><td>#SD-2291</td><td>Amara N.</td><td>Ankara Weekend Set</td><td><span class="pill pill-secured">Packed</span></td></tr>
-            <tr><td>#SD-2288</td><td>Kelvin J.</td><td>Wireless Earbuds</td><td><span class="pill pill-completed">Delivered</span></td></tr>
-            <tr><td>#SD-2277</td><td>Blessing F.</td><td>Skincare Bundle</td><td><span class="pill pill-pending">Preparing</span></td></tr>
+            <tr><td colspan="4" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1910,9 +1884,7 @@
         <table class="table">
           <thead><tr><th>Date</th><th>Amount</th><th>Bank Account</th><th>Status</th><th></th></tr></thead>
           <tbody>
-            <tr><td>Jul 18, 2026</td><td>₦180,000</td><td>GTBank •••4821</td><td><span class="pill pill-completed">Paid</span></td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">Receipt ↓</a></td></tr>
-            <tr><td>Jul 04, 2026</td><td>₦95,500</td><td>GTBank •••4821</td><td><span class="pill pill-completed">Paid</span></td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">Receipt ↓</a></td></tr>
-            <tr><td>Jun 21, 2026</td><td>₦140,200</td><td>GTBank •••4821</td><td><span class="pill pill-completed">Paid</span></td><td><a style="color:var(--green-solid); font-weight:600; font-size:13px;">Receipt ↓</a></td></tr>
+            <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No payouts yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1957,10 +1929,10 @@
           </div>
           <div class="field">
             <label>Business name</label>
-            <input id="biz-name" value="Chi's Ankara Studio" onchange="autosave(this)">
+            <input id="biz-name" placeholder="Your business name" onchange="autosave(this)">
             <p id="bizNameLockNotice" class="hidden" style="font-size:11.5px; color:var(--navy-soft); margin-top:6px;">Locked for verification. <a style="color:var(--green-solid); font-weight:600; cursor:pointer;" onclick="openChangeRequestModal('Business Name')">Request a change</a></p>
           </div>
-          <div class="field"><label>Business description</label><textarea rows="2" onchange="autosave(this)">Handmade Ankara fashion, made-to-order across Lagos.</textarea></div>
+          <div class="field"><label>Business description</label><textarea rows="2" placeholder="Tell buyers what you sell" onchange="autosave(this)"></textarea></div>
           <div class="field">
             <label>Business category</label>
             <select id="biz-category" onchange="autosave(this); toggleOtherCategory(this)">
@@ -2122,11 +2094,7 @@
         <table class="table">
           <thead><tr><th>Buyer</th><th>Vendor</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th></tr></thead>
           <tbody>
-            <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">AN</div>Amara N.</td><td>Chi's Ankara Studio</td><td>Ankara Weekend Set</td><td>₦24,500</td><td><span class="pill pill-secured">Secured</span></td><td>Jul 24</td></tr>
-            <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">KJ</div>Kelvin J.</td><td>Chi's Ankara Studio</td><td>Wireless Earbuds</td><td>₦18,000</td><td><span class="pill pill-completed">Completed</span></td><td>Jul 23</td></tr>
-            <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">BF</div>Blessing F.</td><td>Chi's Ankara Studio</td><td>Skincare Bundle</td><td>₦12,300</td><td><span class="pill pill-pending">Pending</span></td><td>Jul 22</td></tr>
-            <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">IO</div>Ifeanyi O.</td><td>Chi's Ankara Studio</td><td>Bluetooth Speaker</td><td>₦31,000</td><td><span class="pill pill-disputed">Disputed</span></td><td>Jul 20</td></tr>
-            <tr><td class="row-buyer"><div class="avatar" style="width:26px;height:26px;font-size:10px;">NP</div>Nkechi P.</td><td>Chi's Ankara Studio</td><td>Wig Bundle</td><td>₦45,000</td><td><span class="pill pill-cancelled">Cancelled</span></td><td>Jul 18</td></tr>
+            <tr><td colspan="6" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
           </tbody>
         </table>
       </div>
