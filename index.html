@@ -479,12 +479,6 @@
   .notif-item p{font-size:12px; color:var(--navy-soft); margin-bottom:3px;}
   .notif-item span{font-size:11px; color:#9aa6c0;}
 
-  .dev-fab{position:fixed; bottom:22px; right:22px; z-index:200; width:46px; height:46px; border-radius:50%; background:var(--navy); color:#fff; font-size:18px; box-shadow:var(--shadow-lg); display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;}
-  .dev-panel{display:none; position:fixed; bottom:78px; right:22px; z-index:200; width:230px; max-height:70vh; overflow-y:auto; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); padding:12px;}
-  .dev-panel.show{display:block;}
-  .dev-panel h5{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--navy-soft); padding:6px 4px 4px;}
-  .dev-panel button{display:block; width:100%; text-align:left; background:none; border:none; padding:8px 8px; font-size:12.5px; color:var(--navy); border-radius:8px; cursor:pointer;}
-  .dev-panel button:hover{background:var(--bg-soft); color:var(--green-solid);}
 
   .buyer-subnav{display:flex; align-items:center; justify-content:space-between; padding:18px 0;}
   .buyer-back{font-size:13px; font-weight:600; color:var(--navy-soft); cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
@@ -2339,59 +2333,6 @@
   </div>
 </div>
 
-<!-- DEV / QA PANEL -->
-<button class="dev-fab" onclick="document.getElementById('devPanel').classList.toggle('show'); document.getElementById('notifPanel').classList.remove('show'); document.getElementById('vendorNotifPanel').classList.remove('show');" aria-label="Dev screen switcher">☰</button>
-<div class="dev-panel" id="devPanel">
-  <h5>Marketing</h5>
-  <button onclick="showView('landing')">Landing page (vendor)</button>
-  <button onclick="showView('buyerlanding')">Landing page (buyer)</button>
-  <h5>Vendor auth</h5>
-  <button onclick="showView('roleselect')">Role select</button>
-  <button onclick="showView('signup')">Vendor onboarding</button>
-  <button onclick="showView('otp')">OTP verification</button>
-  <button onclick="showView('emailpending')">Email verification</button>
-  <h5>Buyer auth</h5>
-  <button onclick="showView('buyersignup')">Buyer sign-up</button>
-  <h5>Shared auth</h5>
-  <button onclick="showView('login')">Log in</button>
-  <button onclick="showView('forgot')">Forgot password</button>
-  <button onclick="showView('forgotsent')">Reset link sent</button>
-  <button onclick="showView('resetpw')">Set new password</button>
-  <h5>Admin</h5>
-  <button onclick="showView('adminlogin')">Admin login</button>
-  <button onclick="showView('admin')">Admin dashboard</button>
-  <h5>Vendor status (simulate)</h5>
-  <button onclick="vendorStatus=null; toast('Vendor status reset to unverified'); refreshVendorStatusUI();">Reset to unverified (test gate)</button>
-  <button onclick="setVendorStatus('awaiting')">Awaiting Verification</button>
-  <button onclick="setVendorStatus('verified')">Simulate: vendor verified</button>
-  <button onclick="setVendorStatus('suspended')">Simulate: vendor suspended</button>
-  <button onclick="setVendorStatus('under_review')">Simulate: vendor under review</button>
-  <h5>Vendor app</h5>
-  <button onclick="showView('app'); showApp('dashboard')">Dashboard</button>
-  <button onclick="showView('app'); showApp('createlink')">Create link</button>
-  <button onclick="showView('app'); showApp('identityverify')">Identity verification</button>
-  <button onclick="showView('app'); protectionFeePolicyOrigin='createlink'; showApp('protectionfee')">Protection fee policy</button>
-  <button onclick="protectionFeePolicyAgreed=false; toast('Policy agreement reset')">Reset policy agreement</button>
-  <button onclick="showView('app'); showApp('transactions')">Transactions</button>
-  <button onclick="showView('app'); showApp('orders')">Orders</button>
-  <button onclick="showView('app'); showApp('escrow')">Escrow</button>
-  <button onclick="showView('app'); showApp('disputes')">Disputes</button>
-  <button onclick="showView('app'); showApp('profile')">Profile</button>
-  <h5>Buyer app</h5>
-  <button onclick="showView('buyerhome')">Buyer home</button>
-  <button onclick="linkViewOrigin='buyerhome'; showView('linkview')">SafeDeal link</button>
-  <button onclick="showView('vendorpublic')">Vendor public page</button>
-  <button onclick="showView('checkout')">Checkout</button>
-  <button onclick="showView('buyertracking')">Tracking (direct, no gate)</button>
-  <button onclick="buyerLoggedIn=false; handleTrackOrderClick();">Tracking (simulate guest gate)</button>
-  <button onclick="buyerLoggedIn=false; toast('Buyer set to guest')">Reset to guest (buyerLoggedIn=false)</button>
-  <button onclick="showView('deliveryconfirm')">Delivery confirmation</button>
-  <button onclick="showView('review')">Review</button>
-  <button onclick="showView('disputeform')">Report dispute</button>
-  <button onclick="showView('disputestatus')">Dispute status</button>
-  <button onclick="showView('buyerprofile')">Buyer profile</button>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ---------- SUPABASE CLIENT ---------- */
@@ -2504,7 +2445,6 @@ function showView(name){
   document.getElementById('view-buyerhome').classList.add('hidden');
   document.querySelectorAll('.buyer-view').forEach(el=>el.classList.add('hidden'));
   document.getElementById('notifPanel').classList.remove('show');
-  document.getElementById('devPanel').classList.remove('show');
   window.scrollTo(0,0);
   if(name==='landing'){
     document.getElementById('view-landing').classList.remove('hidden');
@@ -2623,7 +2563,7 @@ function maybeShowSetupModal(){
   setupModalShown = true;
   openModal('setupModal');
 }
-function toggleVendorNotifs(){ document.getElementById('vendorNotifPanel').classList.toggle('show'); document.getElementById('devPanel').classList.remove('show'); }
+function toggleVendorNotifs(){ document.getElementById('vendorNotifPanel').classList.toggle('show'); }
 function toggleOtherCategory(select){
   var wrap = document.getElementById('biz-category-other-wrap');
   if(select.value === 'Other'){ wrap.classList.remove('hidden'); }
@@ -3089,7 +3029,7 @@ function confirmOpenLink(){
 }
 
 /* ---------- NOTIFICATIONS ---------- */
-function toggleNotifs(){ document.getElementById('notifPanel').classList.toggle('show'); document.getElementById('devPanel').classList.remove('show'); }
+function toggleNotifs(){ document.getElementById('notifPanel').classList.toggle('show'); }
 
 /* ---------- BUYER CHECKOUT ---------- */
 function selectPay(el){ document.querySelectorAll('.pay-option').forEach(function(p){ p.classList.remove('selected'); }); el.classList.add('selected'); }
