@@ -2792,6 +2792,9 @@ async function submitIdentityVerification(){
     business_name: biz,
     business_address: addr,
     selfie_url: selfiePath,
+    selfie_captured_at: selfieMeta.capturedAt,
+    selfie_lat: selfieMeta.lat,
+    selfie_lng: selfieMeta.lng,
     kyc_status: 'awaiting'
   }, { onConflict: 'profile_id' });
 
@@ -2808,6 +2811,7 @@ async function submitIdentityVerification(){
   showApp('dashboard');
   maybeShowSetupModal();
 }
+var selfieMeta = { capturedAt: null, lat: null, lng: null };
 function triggerSelfieCapture(){
   document.getElementById('su-selfie-input').click();
 }
@@ -2816,10 +2820,30 @@ function handleSelfieCapture(input){
   if(!file) return;
   var url = URL.createObjectURL(file);
   var box = document.getElementById('su-selfie-box');
-  box.innerHTML = '<img src="'+url+'" alt="Selfie preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Selfie captured. Click to retake.</span>';
+  selfieMeta.capturedAt = new Date().toISOString();
+  selfieMeta.lat = null;
+  selfieMeta.lng = null;
+  box.innerHTML = '<img src="'+url+'" alt="Selfie preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Selfie captured — getting location…</span>';
   box.style.borderColor = 'var(--green-solid)';
   box.style.color = 'var(--green-solid)';
   box.style.background = '#F5FBF6';
+  var doneLabel = '<img src="'+url+'" alt="Selfie preview" style="width:56px; height:56px; border-radius:50%; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Selfie captured. Click to retake.</span>';
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      function(pos){
+        selfieMeta.lat = pos.coords.latitude;
+        selfieMeta.lng = pos.coords.longitude;
+        box.innerHTML = doneLabel;
+      },
+      function(){
+        /* Location denied or unavailable — still allow the selfie through, just without a location stamp. */
+        box.innerHTML = doneLabel;
+      },
+      { timeout: 8000 }
+    );
+  } else {
+    box.innerHTML = doneLabel;
+  }
 }
 function resetOtpInputs(){
   var inputs = document.querySelectorAll('#view-otp .otp-row input');
