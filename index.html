@@ -191,6 +191,8 @@
   .app-shell.active{display:flex;}
   .sidebar{width:236px; background:#fff; border-right:1px solid var(--border); padding:24px 16px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; flex-shrink:0;}
   .sidebar .logo{padding:6px 8px 26px;}
+  .sidebar-mobile-bar{display:flex; align-items:center; justify-content:space-between;}
+  .sidebar-toggle{display:none; width:38px; height:38px; border-radius:10px; border:1px solid var(--border); background:#fff; font-size:18px; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
   .sidenav{display:flex; flex-direction:column; gap:3px; flex:1;}
   .sidenav button{
     display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; background:transparent;
@@ -425,6 +427,24 @@
     .navcta .btn-sm{ padding:7px 10px; font-size:12.5px; }
     .stat-cards, .trustbar-grid{ grid-template-columns:repeat(2,1fr); }
     .main-area{ padding:18px 16px 40px; }
+
+    /* Vendor/admin dashboard sidebar — collapse into a real hamburger menu
+       instead of the unbounded horizontal row of nav buttons that was
+       overflowing the screen with no way to scroll or close it. */
+    .app-shell.active{ flex-direction:column; }
+    .sidebar{ width:100%; height:auto; position:relative; flex-direction:column; overflow-x:visible; padding:14px 16px; }
+    .sidebar-toggle{ display:flex; }
+    .sidenav{ display:none; flex-direction:column; width:100%; margin-top:12px; gap:2px; }
+    .sidebar-foot{ display:none; }
+    .sidebar.mobile-nav-open .sidenav{ display:flex; }
+    .sidebar.mobile-nav-open .sidebar-foot{ display:block; margin-top:12px; }
+    .sidenav button{ width:100%; }
+
+    /* Dashboard top bar (Welcome back + bell + Create Link button) — stack
+       instead of overflowing off the right edge. */
+    .topbar{ flex-wrap:wrap; gap:12px; }
+    .topbar h2{ font-size:18px; }
+    .topbar > div:last-child{ width:100%; justify-content:space-between; }
   }
 
   /* =========================================================
@@ -1619,9 +1639,12 @@
 =============================================================-->
 <div class="app-shell" id="appShell">
   <aside class="sidebar">
+    <div class="sidebar-mobile-bar">
     <div class="logo" style="cursor:pointer;" onclick="showView('landing')">
       <svg width="30" height="30" viewBox="0 0 100 100" fill="none"><path d="M50 8 L82 24 L82 60 Q82 78 50 92 Q18 78 18 60 L18 24 Z" fill="none" stroke="url(#g6)" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="8" r="6" fill="url(#g6)"/><rect x="36" y="46" width="22" height="15" rx="2" fill="#0B1F3A"/><defs><linearGradient id="g6" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#1F8A3D"/><stop offset="1" stop-color="#6FCF6F"/></linearGradient></defs></svg>
       <div class="logo-lockup"><div class="logo-word" style="font-size:17px;">Safe<span class="s2">Deal</span></div></div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebarMenu(this)" aria-label="Menu">☰</button>
     </div>
     <nav class="sidenav">
       <button class="active" data-app="dashboard" onclick="showApp('dashboard')"><span class="ic">🏠</span>Dashboard</button>
@@ -2036,9 +2059,12 @@
 =============================================================-->
 <div class="app-shell" id="adminShell">
   <aside class="sidebar">
+    <div class="sidebar-mobile-bar">
     <div class="logo" style="cursor:pointer;" onclick="showView('landing')">
       <svg width="30" height="30" viewBox="0 0 100 100" fill="none"><path d="M50 8 L82 24 L82 60 Q82 78 50 92 Q18 78 18 60 L18 24 Z" fill="none" stroke="url(#gAD)" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="8" r="6" fill="url(#gAD)"/><rect x="36" y="46" width="22" height="15" rx="2" fill="#0B1F3A"/><defs><linearGradient id="gAD" x1="0" y1="0" x2="100" y2="100"><stop stop-color="#1F8A3D"/><stop offset="1" stop-color="#6FCF6F"/></linearGradient></defs></svg>
       <div class="logo-lockup"><div class="logo-word" style="font-size:17px;">Safe<span class="s2">Deal</span></div></div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebarMenu(this)" aria-label="Menu">☰</button>
     </div>
     <nav class="sidenav">
       <button class="active" data-admin="vendors" onclick="showAdmin('vendors')"><span class="ic">🧑‍💼</span>Vendors</button>
@@ -2679,6 +2705,10 @@ async function tryLogin(){
 }
 
 /* ---------- APP INNER NAV ---------- */
+function toggleSidebarMenu(btn){
+  var sidebar = btn.closest('.sidebar');
+  if(sidebar) sidebar.classList.toggle('mobile-nav-open');
+}
 function showApp(name){
   document.getElementById('appShell').classList.add('active');
   document.querySelectorAll('[id^="app-"]').forEach(el=>el.classList.add('hidden'));
@@ -2686,6 +2716,7 @@ function showApp(name){
   document.querySelectorAll('.sidenav button').forEach(b=>b.classList.remove('active'));
   var navBtn = document.querySelector('.sidenav button[data-app="'+name+'"]');
   if(navBtn) navBtn.classList.add('active');
+  document.querySelectorAll('.sidebar.mobile-nav-open').forEach(s=>s.classList.remove('mobile-nav-open'));
   var main = document.querySelector('.main-area'); if(main) main.scrollTo(0,0);
   if(name==='dashboard' && pendingVerifiedModal){
     pendingVerifiedModal = false;
@@ -3175,6 +3206,7 @@ function showAdmin(name){
   document.getElementById('admin-'+name).classList.remove('hidden');
   document.querySelectorAll('#adminShell .sidenav button').forEach(b=>b.classList.remove('active'));
   document.querySelector('#adminShell .sidenav button[data-admin="'+name+'"]').classList.add('active');
+  document.querySelectorAll('.sidebar.mobile-nav-open').forEach(s=>s.classList.remove('mobile-nav-open'));
   if(name==='vendors') renderAdminVendorList();
   if(name==='disputes') renderAdminDisputeList();
 }
