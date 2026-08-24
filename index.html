@@ -3335,7 +3335,13 @@ async function tryAdminLogin(){
     return;
   }
 
-  var { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+  var { data: profile, error: profileErr } = await sb.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+  if(profileErr){
+    await sb.auth.signOut();
+    errEl.textContent = 'Could not check admin status: ' + profileErr.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
   if(!profile || profile.role !== 'admin'){
     await sb.auth.signOut();
     errEl.textContent = 'This account is not an admin account.';
