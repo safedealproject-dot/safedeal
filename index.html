@@ -2004,10 +2004,41 @@
             <h3>Verification Status</h3>
             <div class="verify-chip" id="profileVerifyChip" style="width:fit-content;">🛡️ Verified</div>
           </div>
+          <div class="card panel" style="margin-bottom:16px;" id="payoutBankCard">
+            <h3>Payout Bank Account</h3>
+            <p class="muted" style="margin-bottom:10px;">We confirm the account name before it's saved, so payouts always go to the right person.</p>
+            <div id="payoutBankConfirmed" class="hidden" style="display:flex; align-items:center; gap:8px; background:var(--green-bg,#eafbf1); border:1px solid var(--green-solid); border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:13.5px;">
+              <span>✅</span><span id="payoutBankConfirmedText"></span>
+            </div>
+            <div class="field">
+              <label>Bank</label>
+              <select id="payout-bank-code">
+                <option value="">Select your bank</option>
+                <option value="044">Access Bank</option>
+                <option value="011">First Bank of Nigeria</option>
+                <option value="058">GTBank</option>
+                <option value="057">Zenith Bank</option>
+                <option value="033">UBA</option>
+                <option value="070">Fidelity Bank</option>
+                <option value="032">Union Bank</option>
+                <option value="232">Sterling Bank</option>
+                <option value="221">Stanbic IBTC</option>
+                <option value="050">Ecobank</option>
+                <option value="214">FCMB</option>
+                <option value="035">Wema Bank</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Account number</label>
+              <input type="text" inputmode="numeric" maxlength="10" placeholder="0123456789" id="payout-account-number" onchange="document.getElementById('payoutBankConfirmed').classList.add('hidden')">
+            </div>
+            <div id="payoutBankError" class="hidden" style="color:var(--danger); font-size:12.5px; margin:2px 0 10px;"></div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;" id="payoutBankVerifyBtn" onclick="verifyPayoutBank()">Verify Account</button>
+          </div>
           <div class="card panel" style="margin-bottom:16px;">
             <h3>Account Settings</h3>
             <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;">Change Password</button>
-            <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;">Update Bank Details</button>
+            <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;" onclick="document.getElementById('payoutBankCard').scrollIntoView({behavior:'smooth'})">Update Bank Details</button>
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 4px;"><span style="font-size:13.5px; font-weight:600;">Notifications</span>
               <label style="position:relative; display:inline-block; width:40px; height:22px;">
                 <input type="checkbox" checked style="opacity:0; width:0; height:0;" onchange="autosave(this)">
@@ -2729,6 +2760,72 @@ function showApp(name){
     protectionFeePolicyOrigin = 'createlink';
     openModal('pricingSetupModal');
   }
+  if(name==='profile'){
+    loadPayoutBankDetails();
+  }
+}
+
+/* ---------- MONNIFY VERIFICATION (payout bank + NIN) ---------- */
+async function loadPayoutBankDetails(){
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  var { data: vendor } = await sb.from('vendors').select('payout_bank_code,payout_account_number,payout_account_name,bank_verified').eq('profile_id', session.user.id).maybeSingle();
+  if(!vendor) return;
+  if(vendor.payout_bank_code) document.getElementById('payout-bank-code').value = vendor.payout_bank_code;
+  if(vendor.payout_account_number) document.getElementById('payout-account-number').value = vendor.payout_account_number;
+  var confirmedBox = document.getElementById('payoutBankConfirmed');
+  if(vendor.bank_verified && vendor.payout_account_name){
+    document.getElementById('payoutBankConfirmedText').textContent = 'Verified: ' + vendor.payout_account_name;
+    confirmedBox.classList.remove('hidden');
+  } else {
+    confirmedBox.classList.add('hidden');
+  }
+}
+
+async function verifyPayoutBank(){
+  var bankCode = document.getElementById('payout-bank-code').value;
+  var bankName = document.getElementById('payout-bank-code').selectedOptions[0] ? document.getElementById('payout-bank-code').selectedOptions[0].textContent : '';
+  var accountNumber = document.getElementById('payout-account-number').value.trim();
+  var errEl = document.getElementById('payoutBankError');
+  var btn = document.getElementById('payoutBankVerifyBtn');
+  errEl.classList.add('hidden');
+  if(!bankCode || !accountNumber){
+    errEl.textContent = 'Select a bank and enter your account number.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  try{
+    var { data, error } = await sb.functions.invoke('monnify-verify', { body: { action:'name-enquiry', accountNumber: accountNumber, bankCode: bankCode } });
+    if(error || !data || data.error){
+      errEl.textContent = (data && data.error) || 'Could not verify this account. Double-check the number and try again.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    var upsert = await sb.from('vendors').upsert({
+      profile_id: session.user.id,
+      payout_bank_code: bankCode,
+      payout_bank_name: bankName,
+      payout_account_number: accountNumber,
+      payout_account_name: data.accountName,
+      bank_verified: true,
+      bank_verified_at: new Date().toISOString()
+    }, { onConflict: 'profile_id' });
+    if(upsert.error){
+      errEl.textContent = 'Verified, but saving failed: ' + upsert.error.message;
+      errEl.classList.remove('hidden');
+      return;
+    }
+    document.getElementById('payoutBankConfirmedText').textContent = 'Verified: ' + data.accountName;
+    document.getElementById('payoutBankConfirmed').classList.remove('hidden');
+    toast('Bank account verified and saved');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify Account';
+  }
 }
 
 /* ---------- VENDOR ONBOARDING ---------- */
@@ -2817,6 +2914,22 @@ async function submitIdentityVerification(){
     return;
   }
 
+  /* Best-effort NIN check against Monnify — this NEVER blocks submission.
+     If it's not configured yet, or Monnify can't confirm it, the vendor
+     still goes to 'awaiting' for a human admin to review, same as before. */
+  var ninVerified = false, ninNote = null;
+  try{
+    var ninCheck = await sb.functions.invoke('monnify-verify', { body: { action:'nin-verify', nin: nin } });
+    if(ninCheck.data && !ninCheck.data.error){
+      ninVerified = true;
+      ninNote = JSON.stringify(ninCheck.data.raw || ninCheck.data);
+    } else {
+      ninNote = (ninCheck.data && ninCheck.data.error) || (ninCheck.error && ninCheck.error.message) || 'NIN check unavailable';
+    }
+  } catch(e){
+    ninNote = 'NIN check unavailable: ' + (e && e.message ? e.message : e);
+  }
+
   var vendorResult = await sb.from('vendors').upsert({
     profile_id: session.user.id,
     nin: nin,
@@ -2826,6 +2939,9 @@ async function submitIdentityVerification(){
     selfie_captured_at: selfieMeta.capturedAt,
     selfie_lat: selfieMeta.lat,
     selfie_lng: selfieMeta.lng,
+    nin_verified: ninVerified,
+    nin_verified_at: ninVerified ? new Date().toISOString() : null,
+    nin_verify_note: ninNote,
     kyc_status: 'awaiting'
   }, { onConflict: 'profile_id' });
 
