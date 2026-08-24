@@ -1317,7 +1317,7 @@
   </nav>
   <main class="container" style="padding-top:30px; padding-bottom:60px;">
     <div class="topbar">
-      <div><h2>Welcome back, Amara 👋</h2><p>Every purchase here is protected in escrow until you confirm delivery.</p></div>
+      <div><h2>Welcome back, <span id="buyerWelcomeName">there</span> 👋</h2><p>Every purchase here is protected in escrow until you confirm delivery.</p></div>
       <button class="btn btn-primary btn-sm" onclick="linkViewOrigin='buyerhome'; openModal('openLinkModal')">+ Open a SafeDeal Link</button>
     </div>
     <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);">
@@ -1649,7 +1649,7 @@
     <!-- DASHBOARD -->
     <div id="app-dashboard">
       <div class="topbar">
-        <div><h2>Welcome back, Chiamaka 👋</h2><p>Here's how your store is doing today. <span id="vendorStatusBadge" style="margin-left:4px;"></span></p></div>
+        <div><h2>Welcome back, <span id="vendorWelcomeName">there</span> 👋</h2><p>Here's how your store is doing today. <span id="vendorStatusBadge" style="margin-left:4px;"></span></p></div>
         <div style="display:flex; align-items:center; gap:12px;">
           <div class="notif-bell-wrap">
             <button class="notif-bell" onclick="toggleVendorNotifs()" aria-label="Notifications">🔔<span class="notif-dot"></span></button>
@@ -2415,6 +2415,7 @@ sb.auth.onAuthStateChange(function(event, session){
 async function routeAfterAuth(session){
   const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
   if(!profile) return;
+  var displayName = profile.first_name || (session.user.email ? session.user.email.split('@')[0] : 'there');
   if(!profile.role){
     /* New Google sign-in with no role chosen yet */
     showView('oauthrole');
@@ -2422,11 +2423,15 @@ async function routeAfterAuth(session){
   }
   if(profile.role === 'buyer'){
     buyerLoggedIn = true;
+    var buyerNameEl = document.getElementById('buyerWelcomeName');
+    if(buyerNameEl) buyerNameEl.textContent = displayName;
     showView('buyerhome');
   } else if(profile.role === 'vendor'){
     const { data: vendorRow } = await sb.from('vendors').select('*').eq('profile_id', session.user.id).single();
     vendorStatus = vendorRow ? vendorRow.kyc_status : null;
     refreshVendorStatusUI();
+    var vendorNameEl = document.getElementById('vendorWelcomeName');
+    if(vendorNameEl) vendorNameEl.textContent = displayName;
     showView('app'); showApp('dashboard');
   }
 }
