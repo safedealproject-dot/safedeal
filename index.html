@@ -1797,7 +1797,7 @@
           </label>
           <div id="vs-terms-consent-error" class="hidden" style="color:var(--danger); font-size:12.5px; margin-top:6px;">Please agree to the Terms and Conditions to continue.</div>
         </div>
-        <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="submitIdentityVerification()">Submit for Verification</button>
+        <button class="btn btn-primary" id="ivSubmitBtn" style="width:100%; margin-top:8px;" onclick="submitIdentityVerification()">Submit for Verification</button>
       </div>
     </div>
 
@@ -2745,14 +2745,16 @@ async function submitCreateAccount(){
   }
   /* Only reached if email confirmation is turned off — routing handled by routeAfterAuth() */
 }
-function submitIdentityVerification(){
+async function submitIdentityVerification(){
   var nin = document.getElementById('su-nin').value.trim();
-  var selfieCaptured = document.getElementById('su-selfie-input').files.length > 0;
+  var selfieInput = document.getElementById('su-selfie-input');
+  var selfieFile = selfieInput.files && selfieInput.files[0];
   var biz = document.getElementById('su-biz').value.trim();
   var addr = document.getElementById('su-addr').value.trim();
   var formErr = document.getElementById('ivFormError');
   var termsErr = document.getElementById('vs-terms-consent-error');
-  if(!nin || !selfieCaptured || !biz || !addr){
+  if(!nin || !selfieFile || !biz || !addr){
+    formErr.textContent = 'Please fill in all required fields before continuing.';
     formErr.classList.remove('hidden');
     return;
   }
@@ -2762,6 +2764,45 @@ function submitIdentityVerification(){
     return;
   }
   termsErr.classList.add('hidden');
+
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session){
+    formErr.textContent = 'Your session expired — please log out and log back in.';
+    formErr.classList.remove('hidden');
+    return;
+  }
+
+  var submitBtn = document.getElementById('ivSubmitBtn');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+
+  var ext = (selfieFile.name.split('.').pop() || 'jpg').toLowerCase();
+  var selfiePath = session.user.id + '/selfie-' + Date.now() + '.' + ext;
+  var uploadResult = await sb.storage.from('vendor-selfies').upload(selfiePath, selfieFile, { upsert: true });
+  if(uploadResult.error){
+    formErr.textContent = 'Could not upload your selfie: ' + uploadResult.error.message;
+    formErr.classList.remove('hidden');
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Submit for Verification'; }
+    return;
+  }
+
+  var vendorResult = await sb.from('vendors').upsert({
+    profile_id: session.user.id,
+    nin: nin,
+    business_name: biz,
+    business_address: addr,
+    selfie_url: selfiePath,
+    kyc_status: 'awaiting'
+  }, { onConflict: 'profile_id' });
+
+  if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Submit for Verification'; }
+
+  if(vendorResult.error){
+    formErr.textContent = 'Could not save your details: ' + vendorResult.error.message;
+    formErr.classList.remove('hidden');
+    return;
+  }
+
   setVendorStatus('awaiting');
   toast('Submitted for verification');
   showApp('dashboard');
