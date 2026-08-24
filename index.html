@@ -836,7 +836,7 @@
           <div><h5>Company</h5><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div>
           <div><h5>Legal</h5><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Dispute Policy</a></div>
         </div>
-        <div class="foot-bottom"><span>© 2026 SafeDeal. All rights reserved.</span><span>Lagos, Nigeria</span><span><a onclick="showView('adminlogin')" style="color:#c3cbdb; opacity:.55; cursor:pointer; font-size:12px;">Admin</a></span></div>
+        <div class="foot-bottom"><span>© 2026 SafeDeal. All rights reserved.</span><span>Lagos, Nigeria</span></div>
       </div>
     </footer>
   </div>
@@ -2435,7 +2435,21 @@ async function routeAfterAuth(session){
     var vendorNameEl = document.getElementById('vendorWelcomeName');
     if(vendorNameEl) vendorNameEl.textContent = displayName;
     showView('app'); showApp('dashboard');
+  } else if(profile.role === 'admin'){
+    /* Already-logged-in admin returning via the #admin link — skip straight
+       past the login screen instead of asking them to sign in again. */
+    showView('admin');
   }
+}
+
+/* ---------- DEDICATED ADMIN ENTRY LINK ----------
+   Visiting the site with #admin in the URL (e.g. https://safedeal-ten.vercel.app/#admin)
+   goes straight to the admin login screen — this is a convenience link, NOT
+   the actual security boundary. The real protection is tryAdminLogin()
+   requiring a Supabase account with profiles.role = 'admin'; anyone without
+   that role gets signed back out immediately even if they know this URL. */
+if(window.location.hash === '#admin'){
+  showView('adminlogin');
 }
 
 async function logoutUser(){
@@ -3303,15 +3317,32 @@ function openDispute(){
 }
 
 /* ---------- ADMIN LOGIN ---------- */
-function tryAdminLogin(){
+async function tryAdminLogin(){
   var email = document.getElementById('admin-email').value.trim();
   var pass = document.getElementById('admin-pass').value;
   var errEl = document.getElementById('adminLoginError');
   if(!email || !pass){
+    errEl.textContent = 'Please enter both your email and password.';
     errEl.classList.remove('hidden');
     return;
   }
   errEl.classList.add('hidden');
+
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+  if(error){
+    errEl.textContent = error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  var { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+  if(!profile || profile.role !== 'admin'){
+    await sb.auth.signOut();
+    errEl.textContent = 'This account is not an admin account.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
   showView('admin');
 }
 
@@ -3327,38 +3358,53 @@ function showAdmin(name){
   if(name==='disputes') renderAdminDisputeList();
 }
 
-/* ---------- ADMIN: VENDOR VERIFICATION QUEUE ---------- */
-var ADMIN_VENDORS = [
-  { id:'session', name:'Chiamaka Obi', business:"Chi's Ankara Studio", email:'chi@ankarastudio.com', phone:'+234 800 000 0000', address:'12 Admiralty Way, Lekki, Lagos' },
-  { id:'v2', name:'Tunde Bello', business:'Bello Electronics', email:'tunde@belloelectronics.com', phone:'+234 802 555 1122', address:'5 Marina Road, Lagos Island, Lagos', status:'awaiting' },
-  { id:'v3', name:'Ifeoma Nwachukwu', business:'Ifeoma Beauty Bar', email:'ifeoma@beautybar.ng', phone:'+234 803 444 7788', address:'2 Ozumba Mbadiwe, Victoria Island, Lagos', status:'under_review' },
-  { id:'v4', name:'Kelvin Johnson', business:'KJ Gadgets Hub', email:'kelvin@kjgadgets.ng', phone:'+234 805 222 9911', address:'8 Allen Avenue, Ikeja, Lagos', status:'suspended' },
-  { id:'v5', name:'Blessing Fashola', business:'Glow Beauty Bar', email:'blessing@glowbeauty.ng', phone:'+234 807 111 3344', address:'14 Awolowo Road, Ikoyi, Lagos', status:'verified' }
-];
-function getAdminVendorStatus(v){
-  return v.id === 'session' ? (vendorStatus || 'awaiting') : v.status;
+/* ---------- ADMIN: VENDOR VERIFICATION QUEUE (real Supabase data) ---------- */
+var ADMIN_VENDORS = [];   /* populated by loadAdminVendors() from the real vendors+profiles tables */
+async function loadAdminVendors(){
+  var { data, error } = await sb.from('vendors')
+    .select('id,profile_id,business_name,business_address,nin,selfie_url,kyc_status,bank_verified,payout_bank_name,payout_account_name,nin_verified,created_at,profiles(first_name,last_name,email,phone)')
+    .order('created_at', { ascending: false });
+  if(error){
+    console.error('loadAdminVendors failed', error);
+    ADMIN_VENDORS = [];
+    return;
+  }
+  ADMIN_VENDORS = data || [];
 }
-function renderAdminVendorList(){
+function getAdminVendorStatus(v){
+  return v.kyc_status || 'awaiting';
+}
+async function renderAdminVendorList(){
   var list = document.getElementById('adminVendorList');
   if(!list) return;
+  list.innerHTML = '<p class="muted" style="padding:10px 0;">Loading vendors…</p>';
+  await loadAdminVendors();
+  if(!ADMIN_VENDORS.length){
+    list.innerHTML = '<p class="muted" style="padding:10px 0;">No vendors have signed up yet.</p>';
+    return;
+  }
   list.innerHTML = ADMIN_VENDORS.map(function(v){
     var status = getAdminVendorStatus(v);
     var meta = VENDOR_STATUS_META[status] || VENDOR_STATUS_META.awaiting;
+    var p = v.profiles || {};
+    var name = ((p.first_name||'') + ' ' + (p.last_name||'')).trim() || '(no name on file)';
+    var biz = v.business_name || '(no business name yet)';
     return '<div class="card panel" style="cursor:pointer; padding:14px;" onclick="openAdminVendor(\''+v.id+'\')">'
       + '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">'
-      + '<div><strong style="font-size:13.5px;">'+v.name+'</strong><div style="font-size:12px; color:var(--navy-soft);">'+v.business+'</div></div>'
+      + '<div><strong style="font-size:13.5px;">'+name+'</strong><div style="font-size:12px; color:var(--navy-soft);">'+biz+'</div></div>'
       + '<span class="pill '+meta.pillClass+'">'+meta.label+'</span>'
       + '</div></div>';
   }).join('');
 }
-function openAdminVendor(id){
+async function openAdminVendor(id){
   var v = ADMIN_VENDORS.find(function(x){ return x.id===id; });
   if(!v) return;
   var status = getAdminVendorStatus(v);
   var meta = VENDOR_STATUS_META[status] || VENDOR_STATUS_META.awaiting;
-  var nameParts = v.name.split(' ');
-  var firstName = nameParts[0];
-  var lastName = nameParts.slice(1).join(' ');
+  var p = v.profiles || {};
+  var firstName = p.first_name || '';
+  var lastName = p.last_name || '';
+  var fullName = (firstName + ' ' + lastName).trim() || '(no name on file)';
   var canAct = (status === 'awaiting' || status === 'under_review');
   var actionsHtml = canAct
     ? '<div style="display:flex; flex-direction:column; gap:8px; margin-top:18px;">'
@@ -3367,25 +3413,43 @@ function openAdminVendor(id){
       + '<button class="btn btn-danger btn-sm" onclick="adminSetVendorStatus(\''+id+'\',\'suspended\')">Reject / Suspend</button>'
       + '</div>'
     : '<p class="muted" style="margin-top:16px; font-size:12.5px;">No further action is available for a vendor in this status.</p>';
+  var bankLine = v.bank_verified
+    ? '✅ Verified — ' + (v.payout_account_name || '') + (v.payout_bank_name ? ' (' + v.payout_bank_name + ')' : '')
+    : '⚠️ Not verified yet';
+  var ninLine = v.nin_verified ? '✅ Verified' : '⚠️ Not confirmed (Sandbox / not yet checked)';
   document.getElementById('adminVendorDetail').innerHTML =
-    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;"><h3>'+v.name+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
-    + '<p class="muted" style="margin-bottom:16px;">'+v.business+'</p>'
-    + '<div class="line-item"><span>First name</span><b>'+firstName+'</b></div>'
-    + '<div class="line-item"><span>Last name</span><b>'+lastName+'</b></div>'
-    + '<div class="line-item"><span>Business name</span><b>'+v.business+'</b></div>'
-    + '<div class="line-item"><span>Email</span><b>'+v.email+'</b></div>'
-    + '<div class="line-item"><span>Phone</span><b>'+v.phone+'</b></div>'
-    + '<div class="line-item total"><span>Business address</span><b>'+v.address+'</b></div>'
+    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;"><h3>'+fullName+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+    + '<p class="muted" style="margin-bottom:16px;">'+(v.business_name||'(no business name yet)')+'</p>'
+    + '<div class="line-item"><span>First name</span><b>'+(firstName||'—')+'</b></div>'
+    + '<div class="line-item"><span>Last name</span><b>'+(lastName||'—')+'</b></div>'
+    + '<div class="line-item"><span>Business name</span><b>'+(v.business_name||'—')+'</b></div>'
+    + '<div class="line-item"><span>Email</span><b>'+(p.email||'—')+'</b></div>'
+    + '<div class="line-item"><span>Phone</span><b>'+(p.phone||'—')+'</b></div>'
+    + '<div class="line-item"><span>Business address</span><b>'+(v.business_address||'—')+'</b></div>'
+    + '<div class="line-item"><span>NIN</span><b>'+(v.nin||'—')+'</b></div>'
+    + '<div class="line-item"><span>NIN check</span><b>'+ninLine+'</b></div>'
+    + '<div class="line-item total"><span>Payout bank account</span><b>'+bankLine+'</b></div>'
+    + '<div id="adminSelfiePreview" style="margin-top:12px;"><span class="muted" style="font-size:12.5px;">Loading selfie…</span></div>'
     + actionsHtml;
+  loadAdminSelfiePreview(v.selfie_url);
 }
-function adminSetVendorStatus(id, newStatus){
+async function loadAdminSelfiePreview(selfiePath){
+  var box = document.getElementById('adminSelfiePreview');
+  if(!box) return;
+  if(!selfiePath){ box.innerHTML = '<span class="muted" style="font-size:12.5px;">No selfie on file.</span>'; return; }
+  var { data, error } = await sb.storage.from('vendor-selfies').createSignedUrl(selfiePath, 300);
+  if(error || !data){ box.innerHTML = '<span class="muted" style="font-size:12.5px;">Could not load selfie preview.</span>'; return; }
+  box.innerHTML = '<img src="'+data.signedUrl+'" alt="Vendor selfie" style="width:110px; height:110px; object-fit:cover; border-radius:12px; border:1px solid var(--border);">';
+}
+async function adminSetVendorStatus(id, newStatus){
   var v = ADMIN_VENDORS.find(function(x){ return x.id===id; });
   if(!v) return;
-  if(id === 'session'){
-    setVendorStatus(newStatus);
-  } else {
-    v.status = newStatus;
+  var { error } = await sb.from('vendors').update({ kyc_status: newStatus }).eq('id', id);
+  if(error){
+    toast('Could not update vendor: ' + error.message);
+    return;
   }
+  v.kyc_status = newStatus;
   renderAdminVendorList();
   openAdminVendor(id);
   var messages = { verified:'Vendor approved and verified.', suspended:'Vendor suspended.', under_review:'More information requested from vendor.' };
