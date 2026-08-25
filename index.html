@@ -1030,7 +1030,7 @@
         <div class="logo-lockup"><div class="logo-word">Safe<span class="s2">Deal</span></div></div>
       </div>
       <h3 style="font-size:22px; margin-bottom:8px;">How will you use SafeDeal?</h3>
-      <p style="color:var(--navy-soft); font-size:13.5px;">You can always add the other role to your account later.</p>
+      <p style="color:var(--navy-soft); font-size:13.5px;">Vendor and buyer are separate accounts — pick the email (or Google account) you want to use for this one.</p>
     </div>
     <div class="role-grid">
       <div class="role-option" onclick="showView('signup')">
@@ -1324,7 +1324,7 @@
           </div>
         </div>
         <span class="pill pill-approved">🛍️ Buyer account</span>
-        <button class="btn btn-ghost btn-sm" onclick="showView('buyerprofile')">Profile</button>
+        <button class="btn btn-ghost btn-sm" onclick="openBuyerProfileView()">Profile</button>
         <button class="btn btn-ghost btn-sm" onclick="logoutUser()">Log out</button>
       </div>
     </div>
@@ -1602,27 +1602,29 @@
     <div class="buyer-subnav"><span class="buyer-back" onclick="goToBuyerHome()">← Back to purchases</span></div>
     <h2 style="margin-bottom:16px;">Profile & settings</h2>
     <div class="card panel">
+      <div id="bp-form-error" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger); margin-bottom:14px;"></div>
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:22px;">
-        <div class="avatar" style="width:56px;height:56px;font-size:18px;">AN</div>
-        <button class="btn btn-ghost btn-sm" onclick="autosave(this)">Change photo</button>
+        <div class="avatar" id="bp-avatar" style="width:56px;height:56px;font-size:18px;">--</div>
+        <button class="btn btn-ghost btn-sm" disabled title="Coming soon">Change photo</button>
       </div>
-      <div class="field"><label>Full name</label><input type="text" value="Amara Nwosu" onchange="autosave(this)"></div>
-      <div class="field"><label>Email address</label><input type="email" value="amara@example.com" onchange="autosave(this)"></div>
-      <div class="field"><label>Phone number</label><input type="tel" value="+234 800 000 0000" onchange="autosave(this)"></div>
-      <div class="field"><label>Delivery address</label><textarea rows="2" onchange="autosave(this)">14 Adeola Odeku Street, Victoria Island, Lagos</textarea></div>
+      <div class="field"><label>Full name</label><input type="text" id="bp-fullname"></div>
+      <div class="field"><label>Email address</label><input type="email" id="bp-email" disabled></div>
+      <p style="font-size:11.5px; color:var(--navy-soft); margin:-14px 0 16px;">Your login email — contact SafeDeal support to change it.</p>
+      <div class="field"><label>Phone number</label><input type="tel" id="bp-phone"></div>
+      <div class="field"><label>Delivery address</label><textarea rows="2" id="bp-address"></textarea></div>
       <div style="height:1px; background:var(--border); margin:20px 0;"></div>
-      <div class="field"><label>Current password</label><input type="password"></div>
-      <div class="field"><label>New password</label><input type="password"></div>
+      <div class="field"><label>Current password</label><input type="password" id="bp-currentpass"></div>
+      <div class="field"><label>New password</label><input type="password" id="bp-newpass"></div>
       <div style="height:1px; background:var(--border); margin:20px 0;"></div>
       <div style="display:flex; justify-content:space-between; align-items:center; padding:4px;">
         <span style="font-size:13.5px; font-weight:600;">Order & dispute notifications</span>
         <label style="position:relative; display:inline-block; width:40px; height:22px;">
-          <input type="checkbox" checked style="opacity:0; width:0; height:0;" onchange="autosave(this)">
+          <input type="checkbox" id="bp-notifications" checked style="opacity:0; width:0; height:0;">
           <span style="position:absolute; inset:0; background:var(--green-solid); border-radius:20px;"></span>
           <span style="position:absolute; height:16px; width:16px; right:3px; top:3px; background:#fff; border-radius:50%;"></span>
         </label>
       </div>
-      <button class="btn btn-primary" style="width:100%; margin-top:22px;" onclick="autosave(this)">Save Changes</button>
+      <button class="btn btn-primary" id="bp-save-btn" style="width:100%; margin-top:22px;" onclick="saveBuyerProfile()">Save Changes</button>
       <button class="btn btn-danger" style="width:100%; margin-top:10px;" onclick="logoutUser()">Log Out</button>
     </div>
   </main>
@@ -1951,20 +1953,21 @@
       <div class="grid2">
         <div class="card panel">
           <h3>Business Profile</h3>
+          <div id="biz-form-error" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger); margin-bottom:14px;"></div>
           <div class="grid3" style="margin-bottom:6px;">
-            <div class="field"><label>Logo</label><div class="upload-box" style="padding:14px;" onclick="autosave(this)"><span class="ic" style="font-size:16px;">🖼️</span>Upload</div></div>
-            <div class="field" style="grid-column:span 2;"><label>Cover image</label><div class="upload-box" style="padding:14px;" onclick="autosave(this)"><span class="ic" style="font-size:16px;">🖼️</span>Upload cover</div></div>
+            <div class="field"><label>Logo</label><div class="upload-box" style="padding:14px; opacity:.6; cursor:not-allowed;" title="Coming soon"><span class="ic" style="font-size:16px;">🖼️</span>Upload</div></div>
+            <div class="field" style="grid-column:span 2;"><label>Cover image</label><div class="upload-box" style="padding:14px; opacity:.6; cursor:not-allowed;" title="Coming soon"><span class="ic" style="font-size:16px;">🖼️</span>Upload cover</div></div>
           </div>
           <div class="field">
             <label>Business name</label>
-            <input id="biz-name" placeholder="Your business name" onchange="autosave(this)">
+            <input id="biz-name" placeholder="Your business name">
             <p id="bizNameLockNotice" class="hidden" style="font-size:11.5px; color:var(--navy-soft); margin-top:6px;">Locked for verification. <a style="color:var(--green-solid); font-weight:600; cursor:pointer;" onclick="openChangeRequestModal('Business Name')">Request a change</a></p>
           </div>
-          <div class="field"><label>Business description</label><textarea rows="2" placeholder="Tell buyers what you sell" onchange="autosave(this)"></textarea></div>
+          <div class="field"><label>Business description</label><textarea id="biz-desc" rows="2" placeholder="Tell buyers what you sell"></textarea></div>
           <div class="field">
             <label>Business category</label>
-            <select id="biz-category" onchange="autosave(this); toggleOtherCategory(this)">
-              <option selected>Fashion & Apparel</option>
+            <select id="biz-category" onchange="toggleOtherCategory(this)">
+              <option>Fashion & Apparel</option>
               <option>Beauty & Skincare</option>
               <option>Electronics & Gadgets</option>
               <option>Home & Living</option>
@@ -1978,15 +1981,15 @@
           </div>
           <div class="field hidden" id="biz-category-other-wrap">
             <label>Please specify your category</label>
-            <input type="text" id="biz-category-other" placeholder="e.g. Pet Supplies" onchange="autosave(this)">
+            <input type="text" id="biz-category-other" placeholder="e.g. Pet Supplies">
           </div>
           <div class="grid3">
-            <div class="field"><label>Phone</label><input value="+234 800 000 0000" onchange="autosave(this)"></div>
-            <div class="field" style="grid-column:span 2;"><label>Email</label><input value="chi@ankarastudio.com" onchange="autosave(this)"></div>
+            <div class="field"><label>Phone</label><input id="biz-phone"></div>
+            <div class="field" style="grid-column:span 2;"><label>Email</label><input id="biz-email" disabled></div>
           </div>
           <div class="field">
             <label>Business address</label>
-            <input id="biz-address" value="12 Admiralty Way, Lekki, Lagos" onchange="autosave(this)">
+            <input id="biz-address">
             <p id="bizAddressLockNotice" class="hidden" style="font-size:11.5px; color:var(--navy-soft); margin-top:6px;">Locked for verification. <a style="color:var(--green-solid); font-weight:600; cursor:pointer;" onclick="openChangeRequestModal('Business Address')">Request a change</a></p>
           </div>
           <div class="field">
@@ -2009,6 +2012,7 @@
             </div>
             <button class="btn btn-ghost btn-sm" type="button" onclick="addSocialLinkRow()">+ Add link</button>
           </div>
+          <button class="btn btn-primary" id="biz-save-btn" style="width:100%; margin-top:18px;" onclick="saveVendorBusinessProfile()">Save Changes</button>
         </div>
         <div>
           <div class="card panel" style="margin-bottom:16px;">
@@ -2048,11 +2052,11 @@
           </div>
           <div class="card panel" style="margin-bottom:16px;">
             <h3>Account Settings</h3>
-            <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;">Change Password</button>
+            <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;" onclick="toast('Password changes are coming soon — for now, contact SafeDeal support.')">Change Password</button>
             <button class="btn btn-ghost btn-sm" style="width:100%; justify-content:flex-start; margin-bottom:8px;" onclick="document.getElementById('payoutBankCard').scrollIntoView({behavior:'smooth'})">Update Bank Details</button>
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 4px;"><span style="font-size:13.5px; font-weight:600;">Notifications</span>
               <label style="position:relative; display:inline-block; width:40px; height:22px;">
-                <input type="checkbox" checked style="opacity:0; width:0; height:0;" onchange="autosave(this)">
+                <input type="checkbox" id="biz-notifications" checked style="opacity:0; width:0; height:0;" onchange="saveVendorNotificationsToggle(this.checked)">
                 <span style="position:absolute; inset:0; background:var(--green-solid); border-radius:20px;"></span>
                 <span style="position:absolute; height:16px; width:16px; right:3px; top:3px; background:#fff; border-radius:50%;"></span>
               </label>
@@ -2295,6 +2299,16 @@
   </div>
 </div>
 
+<!-- OAUTH SAME-ACCOUNT ROLE CLARITY MODAL -->
+<div class="modal-overlay" id="oauthRoleClarityModal">
+  <div class="modal" style="text-align:center;">
+    <div class="icon-circle" style="margin:0 auto 16px;">ℹ️</div>
+    <h3>This Google account is already a <span id="oauthClarityRole">buyer</span> account</h3>
+    <p class="muted">Vendor and buyer are separate accounts on SafeDeal right now — this exact Google account was already set up as a <span id="oauthClarityRole2">buyer</span> the first time it signed in, so it always lands here. To test the other role, sign in with a different Google account, or use email/password signup instead.</p>
+    <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="closeModal('oauthRoleClarityModal')">Got it</button>
+  </div>
+</div>
+
 <!-- TERMS AND CONDITIONS MODAL -->
 <div class="modal-overlay" id="termsModal">
   <div class="modal" style="max-width:640px;">
@@ -2433,6 +2447,20 @@ async function routeAfterAuth(session){
     /* New Google sign-in with no role chosen yet */
     showView('oauthrole');
     return;
+  }
+  /* Same Google email always maps to the same one role forever (there's no
+     dual-role support) -- if a returning OAuth user lands here, it's because
+     they already locked in this role the very first time they ever signed
+     in, not because of anything they picked just now. Without this, it
+     silently looks broken (see Emmanuel's report: signed in intending
+     vendor, landed on buyer with zero explanation). Shown once per browser
+     tab session so it doesn't nag on every refresh. */
+  var isGoogleUser = session.user.app_metadata && session.user.app_metadata.provider === 'google';
+  if(isGoogleUser && profile.role !== 'admin' && !sessionStorage.getItem('sd_oauth_role_notice_shown')){
+    sessionStorage.setItem('sd_oauth_role_notice_shown', '1');
+    document.getElementById('oauthClarityRole').textContent = profile.role;
+    document.getElementById('oauthClarityRole2').textContent = profile.role;
+    openModal('oauthRoleClarityModal');
   }
   if(profile.role === 'buyer'){
     buyerLoggedIn = true;
@@ -2812,10 +2840,89 @@ function showApp(name){
   }
   if(name==='profile'){
     loadPayoutBankDetails();
+    loadVendorBusinessProfile();
   }
   if(name==='createlink'){
     loadVendorLinks();
   }
+}
+
+/* ---------- VENDOR BUSINESS PROFILE ---------- */
+async function loadVendorBusinessProfile(){
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  var { data: profile } = await sb.from('profiles').select('phone,email,notifications_enabled').eq('id', session.user.id).maybeSingle();
+  var { data: vendor } = await sb.from('vendors').select('business_name,business_description,business_category,business_category_other,business_address').eq('profile_id', session.user.id).maybeSingle();
+  document.getElementById('biz-name').value = (vendor && vendor.business_name) || '';
+  document.getElementById('biz-desc').value = (vendor && vendor.business_description) || '';
+  document.getElementById('biz-address').value = (vendor && vendor.business_address) || '';
+  var catSelect = document.getElementById('biz-category');
+  if(vendor && vendor.business_category){
+    var found = Array.from(catSelect.options).some(function(o){ return o.value === vendor.business_category; });
+    catSelect.value = found ? vendor.business_category : 'Other';
+    if(!found){ document.getElementById('biz-category-other').value = vendor.business_category; }
+  }
+  if(vendor && vendor.business_category_other){ document.getElementById('biz-category-other').value = vendor.business_category_other; }
+  toggleOtherCategory(catSelect);
+  document.getElementById('biz-phone').value = (profile && profile.phone) || '';
+  document.getElementById('biz-email').value = (profile && profile.email) || session.user.email || '';
+  document.getElementById('biz-notifications').checked = !profile || profile.notifications_enabled !== false;
+  lockBusinessFieldsIfSet();
+}
+async function saveVendorBusinessProfile(){
+  var errEl = document.getElementById('biz-form-error');
+  errEl.classList.add('hidden');
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session || !currentVendorRowId){
+    errEl.textContent = 'Your session expired — please log out and log back in.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var nameEl = document.getElementById('biz-name');
+  var addrEl = document.getElementById('biz-address');
+  var name = nameEl.value.trim();
+  var address = addrEl.value.trim();
+  var desc = document.getElementById('biz-desc').value.trim();
+  var category = document.getElementById('biz-category').value;
+  var categoryOther = document.getElementById('biz-category-other').value.trim();
+  var phone = document.getElementById('biz-phone').value.trim();
+
+  var saveBtn = document.getElementById('biz-save-btn');
+  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+  var vendorUpdate = {
+    business_description: desc,
+    business_category: category,
+    business_category_other: category === 'Other' ? categoryOther : null
+  };
+  /* Business name/address are only writable here the FIRST time (before
+     they're locked for verification) -- once locked, this screen's inputs
+     are read-only anyway (lockBusinessFieldsIfSet), so it's safe to always
+     include the current field value without accidentally overwriting a
+     locked value with something different. */
+  if(!nameEl.readOnly) vendorUpdate.business_name = name;
+  if(!addrEl.readOnly) vendorUpdate.business_address = address;
+
+  var vendorResult = await sb.from('vendors').update(vendorUpdate).eq('id', currentVendorRowId);
+  var profileResult = await sb.from('profiles').update({ phone: phone }).eq('id', session.user.id);
+
+  if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+
+  if(vendorResult.error || profileResult.error){
+    errEl.textContent = 'Could not save your details: ' + ((vendorResult.error && vendorResult.error.message) || (profileResult.error && profileResult.error.message));
+    errEl.classList.remove('hidden');
+    return;
+  }
+  lockBusinessFieldsIfSet();
+  toast('Changes saved');
+}
+async function saveVendorNotificationsToggle(isOn){
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  await sb.from('profiles').update({ notifications_enabled: isOn }).eq('id', session.user.id);
 }
 
 /* ---------- MONNIFY VERIFICATION (payout bank + NIN) ---------- */
@@ -3182,6 +3289,84 @@ function goToBuyerHome(){
   } else {
     showView('buyerlanding');
   }
+}
+async function openBuyerProfileView(){
+  showView('buyerprofile');
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  var { data: profile } = await sb.from('profiles').select('first_name,last_name,email,phone,delivery_address,notifications_enabled').eq('id', session.user.id).maybeSingle();
+  var fullName = ((profile && profile.first_name) || '') + ' ' + ((profile && profile.last_name) || '');
+  fullName = fullName.trim();
+  document.getElementById('bp-fullname').value = fullName;
+  document.getElementById('bp-email').value = (profile && profile.email) || session.user.email || '';
+  document.getElementById('bp-phone').value = (profile && profile.phone) || '';
+  document.getElementById('bp-address').value = (profile && profile.delivery_address) || '';
+  document.getElementById('bp-notifications').checked = !profile || profile.notifications_enabled !== false;
+  document.getElementById('bp-currentpass').value = '';
+  document.getElementById('bp-newpass').value = '';
+  var avatarEl = document.getElementById('bp-avatar');
+  avatarEl.textContent = fullName ? fullName.slice(0,2).toUpperCase() : ((session.user.email||'?')[0].toUpperCase());
+  document.getElementById('bp-form-error').classList.add('hidden');
+}
+async function saveBuyerProfile(){
+  var errEl = document.getElementById('bp-form-error');
+  errEl.classList.add('hidden');
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session){
+    errEl.textContent = 'Your session expired — please log out and log back in.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var fullName = document.getElementById('bp-fullname').value.trim();
+  var parts = fullName.split(' ');
+  var firstName = parts.shift() || '';
+  var lastName = parts.join(' ');
+  var phone = document.getElementById('bp-phone').value.trim();
+  var address = document.getElementById('bp-address').value.trim();
+  var notifsOn = document.getElementById('bp-notifications').checked;
+  var newPass = document.getElementById('bp-newpass').value;
+
+  var saveBtn = document.getElementById('bp-save-btn');
+  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+  if(newPass){
+    if(newPass.length < 6){
+      errEl.textContent = 'New password must be at least 6 characters.';
+      errEl.classList.remove('hidden');
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+      return;
+    }
+    var passResult = await sb.auth.updateUser({ password: newPass });
+    if(passResult.error){
+      errEl.textContent = 'Could not update password: ' + passResult.error.message;
+      errEl.classList.remove('hidden');
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+      return;
+    }
+  }
+
+  var updateResult = await sb.from('profiles').update({
+    first_name: firstName,
+    last_name: lastName,
+    phone: phone,
+    delivery_address: address,
+    notifications_enabled: notifsOn
+  }).eq('id', session.user.id);
+
+  if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+
+  if(updateResult.error){
+    errEl.textContent = 'Could not save your details: ' + updateResult.error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+  document.getElementById('bp-currentpass').value = '';
+  document.getElementById('bp-newpass').value = '';
+  var buyerNameEl = document.getElementById('buyerWelcomeName');
+  if(buyerNameEl && firstName) buyerNameEl.textContent = firstName;
+  toast('Changes saved');
 }
 function resetTrackingGateUI(){
   var main = document.getElementById('trackingMain');
