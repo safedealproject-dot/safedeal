@@ -1384,7 +1384,7 @@
         <div class="line-item"><span>Delivery fee</span><b id="lv-deliveryfee">₦0</b></div>
         <div class="line-item"><span>Estimated delivery</span><b id="lv-timeline">—</b></div>
         <div class="line-item total"><span>Total amount</span><b id="lv-total">₦0</b></div>
-        <button class="btn btn-primary" style="width:100%; margin-top:18px;" onclick="showView('checkout')">Continue to Payment</button>
+        <button class="btn btn-primary" style="width:100%; margin-top:18px;" onclick="goToCheckoutView()">Continue to Payment</button>
         <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="openModal('cancelTxModal')">Cancel Transaction</button>
       </div>
     </div>
@@ -1448,6 +1448,11 @@
         <div class="card panel">
           <h3 style="font-size:15px; margin-bottom:14px;">Pay securely</h3>
           <p class="muted" style="margin-bottom:16px;">You'll be taken to Paystack's secure checkout page to pay by card, bank transfer, or USSD — SafeDeal never sees or stores your card details.</p>
+          <div id="co-guest-email-wrap" class="field hidden" style="margin-bottom:14px;">
+            <label>Email address <span style="color:var(--danger);">*</span></label>
+            <input type="email" placeholder="you@email.com" id="co-guest-email">
+            <p style="font-size:12px; color:var(--navy-soft); margin-top:4px;">No account needed to pay — we'll use this for your receipt, and you can create an account afterward to track this order.</p>
+          </div>
           <div id="checkoutFormError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger);"></div>
           <button class="btn btn-primary" id="payNowBtn" style="width:100%;" onclick="startPaystackCheckout()">🔒 Pay Now — <span id="co-btn-total">₦0</span></button>
         </div>
@@ -1457,7 +1462,16 @@
       <div class="icon-circle"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 13L9 17L19 7" stroke="#1F8A3D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3 style="font-size:20px; margin-bottom:8px;">Payment secured</h3>
       <p style="color:var(--navy-soft); font-size:13.5px; margin-bottom:22px;" id="cs-message">Your payment is safely held in escrow.</p>
-      <button class="btn btn-primary" style="width:100%;" onclick="handleTrackOrderClick()">Track My Order</button>
+      <div id="cs-guest-claim" class="hidden" style="text-align:left;">
+        <h4 style="font-size:14.5px; margin-bottom:6px;">Create a free account to track this order</h4>
+        <p style="font-size:12.5px; color:var(--navy-soft); margin-bottom:14px;">Your payment is already safely secured in escrow — this just lets you follow delivery status and manage this (and future) orders in one place.</p>
+        <div id="cs-claim-error" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger); text-align:left;"></div>
+        <div class="field"><label>Email address</label><input type="email" id="cs-claim-email" disabled></div>
+        <div class="field"><label>Password</label><input type="password" placeholder="Create a password" id="cs-claim-pass"></div>
+        <button class="btn btn-primary" style="width:100%;" id="cs-claim-submit-btn" onclick="submitGuestClaimAccount()">Create Account & Continue</button>
+        <p style="text-align:center; font-size:12.5px; color:var(--navy-soft); margin-top:10px; cursor:pointer;" id="cs-claim-toggle-link" onclick="toggleGuestClaimMode()">Already have a SafeDeal account? Log in instead</p>
+      </div>
+      <button class="btn btn-primary hidden" style="width:100%;" id="cs-track-btn" onclick="handleTrackOrderClick()">Track My Order</button>
     </div>
   </main>
 </div>
@@ -2468,13 +2482,13 @@ async function routeAfterAuth(session){
     if(buyerNameEl) buyerNameEl.textContent = displayName;
     showView('buyerhome');
     loadBuyerOrders();
-    if(pendingPaySlug){
-      var slugToOpen = pendingPaySlug;
-      pendingPaySlug = null;
-      var opened = await loadLinkBySlug(slugToOpen);
-      if(opened) showView('linkview');
-    }
-    checkForPaystackReturn();
+    /* Links any guest orders paid with this same email (before this
+       account existed, or before it was logged into) to this account —
+       covers both "just created an account right after a guest payment"
+       and "logged in normally days later" the same way. Cheap no-op if
+       there's nothing to claim. See the guest-checkout notes on
+       startPaystackCheckout() / checkForPaystackReturn(). */
+    claimGuestOrders();
   } else if(profile.role === 'vendor'){
     const { data: vendorRow } = await sb.from('vendors').select('*').eq('profile_id', session.user.id).single();
     vendorStatus = vendorRow ? vendorRow.kyc_status : null;
@@ -2501,17 +2515,23 @@ if(window.location.hash === '#admin'){
 }
 
 /* Visiting a real SafeDeal Link (either #pay/slug from a Copy button, or a
-   pasted link containing /pay/slug) — if already logged in as a buyer,
-   routeAfterAuth() picks this up via pendingPaySlug; if not logged in yet,
-   send them to buyer login first and reopen the link right after. */
+   pasted link containing /pay/slug) — show the product/price straight
+   away, logged in or not. Buyers used to get bounced to a sign-in screen
+   before seeing what they were even being asked to pay for, which is bad
+   for trust on a platform whose whole pitch is "see the deal, then trust
+   us with your money." payment_links has a public RLS read policy for
+   active links, so this works with no session at all. Login/signup is
+   only asked for once they actually try to pay — see startPaystackCheckout()
+   and the guest-checkout flow in checkForPaystackReturn(). */
 (function(){
   var m = window.location.hash.match(/^#pay\/([a-z0-9-]+)/i);
   if(m){
-    pendingPaySlug = m[1];
-    setLoginRole('buyer');
-    showView('login');
+    loadLinkBySlug(m[1]).then(function(ok){
+      if(ok) showView('linkview');
+    });
   }
 })();
+checkForPaystackReturn();
 
 async function logoutUser(){
   await sb.auth.signOut();
@@ -3461,13 +3481,13 @@ async function handleProductImageSelect(input){
      rules that out regardless of how long the form's been open. */
   var { data: refreshData, error: refreshErr } = await sb.auth.refreshSession();
   var session = (refreshData && refreshData.session) || null;
-  var refreshFailed = !!refreshErr;
   if(refreshErr || !session){
     var { data: sessionData } = await sb.auth.getSession();
     session = sessionData && sessionData.session;
   }
   if(!session){
-    box.innerHTML = '⚠️ DEBUG: no session at all. refreshError="'+(refreshErr?refreshErr.message:'none')+'". <a style="color:var(--green-solid); cursor:pointer;" onclick="triggerProductImageUpload()">Retry</a>';
+    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
+    toast('Your session expired — please log out and log back in, then try the photo again.');
     return;
   }
 
@@ -3475,7 +3495,8 @@ async function handleProductImageSelect(input){
   var path = session.user.id + '/' + Date.now() + '.' + ext;
   var uploadResult = await sb.storage.from('product-images').upload(path, file, { upsert: true });
   if(uploadResult.error){
-    box.innerHTML = '⚠️ DEBUG: upload failed. user_id="'+session.user.id+'", path="'+path+'", refreshFailed='+refreshFailed+', error="'+uploadResult.error.message+'". <a style="color:var(--green-solid); cursor:pointer;" onclick="triggerProductImageUpload()">Retry</a>';
+    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
+    toast('Could not upload photo: ' + uploadResult.error.message);
     return;
   }
   var publicUrlResult = sb.storage.from('product-images').getPublicUrl(path);
@@ -3661,7 +3682,7 @@ function toggleNotifs(){ document.getElementById('notifPanel').classList.toggle(
 
 /* ---------- BUYER CHECKOUT ---------- */
 var currentCheckoutLink = null;
-var pendingPaySlug = null;
+var guestClaimMode = 'signup';
 
 async function loadBuyerOrders(){
   var body = document.getElementById('buyerOrdersBody');
@@ -3743,6 +3764,17 @@ function populateCheckoutView(link){
   document.getElementById('checkoutSuccess').style.display = 'none';
 }
 
+/* Opening the checkout view no longer requires being logged in — this just
+   also shows/hides the guest email field depending on whether there's an
+   active session, since a logged-in buyer's email is already known. */
+async function goToCheckoutView(){
+  showView('checkout');
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  var guestWrap = document.getElementById('co-guest-email-wrap');
+  if(guestWrap) guestWrap.classList.toggle('hidden', !!session);
+}
+
 async function startPaystackCheckout(){
   var errEl = document.getElementById('checkoutFormError');
   errEl.classList.add('hidden');
@@ -3752,16 +3784,28 @@ async function startPaystackCheckout(){
     return;
   }
   var { data: sessionData } = await sb.auth.getSession();
-  if(!sessionData.session){
-    errEl.textContent = 'Please log in as a buyer before paying.';
-    errEl.classList.remove('hidden');
-    return;
+  var session = sessionData && sessionData.session;
+  var guestEmail = '';
+  if(!session){
+    /* Guest checkout — no account required to pay. We just need an email
+       so Paystack has somewhere to send the receipt, and so we can link
+       this order to an account later if/when they create one. Stashed in
+       sessionStorage because Paystack's redirect is a full page reload —
+       any in-memory JS variable would be lost by the time the buyer comes
+       back. */
+    guestEmail = document.getElementById('co-guest-email').value.trim();
+    if(!guestEmail || guestEmail.indexOf('@') === -1){
+      errEl.textContent = 'Please enter a valid email address to continue as a guest.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    sessionStorage.setItem('sd_guest_checkout_email', guestEmail);
   }
   var btn = document.getElementById('payNowBtn');
   btn.disabled = true; btn.textContent = 'Redirecting to Paystack…';
-  var { data, error } = await sb.functions.invoke('paystack-checkout', {
-    body: { action:'initialize', slug: currentCheckoutLink.slug, callbackUrl: window.location.origin + window.location.pathname }
-  });
+  var reqBody = { action:'initialize', slug: currentCheckoutLink.slug, callbackUrl: window.location.origin + window.location.pathname };
+  if(guestEmail) reqBody.email = guestEmail;
+  var { data, error } = await sb.functions.invoke('paystack-checkout', { body: reqBody });
   if(error || !data || data.error){
     errEl.textContent = (data && data.error) || 'Could not start payment. Please try again.';
     errEl.classList.remove('hidden');
@@ -3773,7 +3817,9 @@ async function startPaystackCheckout(){
 
 /* Runs once on page load: if Paystack just redirected the buyer back with
    a payment reference in the URL, confirm it and show the real result —
-   this replaces the old fake "click Pay, instantly succeed" demo flow. */
+   this replaces the old fake "click Pay, instantly succeed" demo flow.
+   Works for guests too, not just logged-in buyers, since payment doesn't
+   require an account. */
 async function checkForPaystackReturn(){
   var params = new URLSearchParams(window.location.search);
   var reference = params.get('reference') || params.get('trxref');
@@ -3788,7 +3834,107 @@ async function checkForPaystackReturn(){
   showView('checkout');
   document.getElementById('checkoutFormWrap').style.display = 'none';
   document.getElementById('checkoutSuccess').style.display = 'block';
-  loadBuyerOrders();
+
+  var { data: sessionData } = await sb.auth.getSession();
+  var loggedIn = !!(sessionData && sessionData.session);
+  var claimBlock = document.getElementById('cs-guest-claim');
+  var trackBtn = document.getElementById('cs-track-btn');
+  if(loggedIn || data.claimed){
+    if(claimBlock) claimBlock.classList.add('hidden');
+    if(trackBtn) trackBtn.classList.remove('hidden');
+    loadBuyerOrders();
+  } else {
+    /* Paid as a guest and this order isn't linked to any account yet —
+       prompt to create one (or log in, if it turns out they already have
+       one) right here, instead of a separate screen, so they don't lose
+       the thread right after paying. */
+    if(trackBtn) trackBtn.classList.add('hidden');
+    if(claimBlock) claimBlock.classList.remove('hidden');
+    var guestEmail = sessionStorage.getItem('sd_guest_checkout_email') || data.buyerEmail || '';
+    document.getElementById('cs-claim-email').value = guestEmail;
+    document.getElementById('cs-claim-pass').value = '';
+    document.getElementById('cs-claim-error').classList.add('hidden');
+    guestClaimMode = 'signup';
+    document.getElementById('cs-claim-submit-btn').textContent = 'Create Account & Continue';
+    document.getElementById('cs-claim-toggle-link').textContent = 'Already have a SafeDeal account? Log in instead';
+  }
+}
+
+function toggleGuestClaimMode(){
+  guestClaimMode = guestClaimMode === 'signup' ? 'login' : 'signup';
+  document.getElementById('cs-claim-submit-btn').textContent = guestClaimMode === 'signup' ? 'Create Account & Continue' : 'Log In & Continue';
+  document.getElementById('cs-claim-toggle-link').textContent = guestClaimMode === 'signup' ? 'Already have a SafeDeal account? Log in instead' : 'New here? Create an account instead';
+  document.getElementById('cs-claim-error').classList.add('hidden');
+}
+
+async function submitGuestClaimAccount(){
+  var errEl = document.getElementById('cs-claim-error');
+  errEl.classList.add('hidden');
+  var email = document.getElementById('cs-claim-email').value.trim();
+  var pass = document.getElementById('cs-claim-pass').value;
+  if(!email || !pass || pass.length < 6){
+    errEl.textContent = 'Please enter your email and a password (at least 6 characters).';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var btn = document.getElementById('cs-claim-submit-btn');
+  btn.disabled = true; btn.textContent = 'Please wait…';
+
+  if(guestClaimMode === 'signup'){
+    var { data, error } = await sb.auth.signUp({
+      email: email,
+      password: pass,
+      options: { data: { role: 'buyer' }, emailRedirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error){
+      if(/already registered|already exists/i.test(error.message)){
+        toggleGuestClaimMode();
+        errEl.textContent = 'Looks like you already have a SafeDeal account with this email — enter your password to log in instead.';
+        errEl.classList.remove('hidden');
+      } else {
+        errEl.textContent = error.message;
+        errEl.classList.remove('hidden');
+      }
+      btn.disabled = false; btn.textContent = 'Create Account & Continue';
+      return;
+    }
+    if(!data.session){
+      /* Email confirmation is on for this project — same as normal buyer
+         signup. The order stays a guest order (safe in escrow either way)
+         until they confirm and routeAfterAuth() claims it automatically. */
+      pendingConfirmEmail = email;
+      document.getElementById('emailPendingAddress').textContent = email;
+      toast('Check your email to confirm your account — your order is already safely secured and will appear in My Purchases once you confirm.');
+      showView('emailpending');
+      return;
+    }
+    /* Session established immediately (email confirmation off) —
+       onAuthStateChange fires routeAfterAuth(), which claims this order
+       and routes to My Purchases automatically. */
+  } else {
+    var { error: loginErr } = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if(loginErr){
+      errEl.textContent = loginErr.message;
+      errEl.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Log In & Continue';
+      return;
+    }
+    /* Same as above — routeAfterAuth() takes it from here. */
+  }
+}
+
+async function claimGuestOrders(){
+  try{
+    var { data, error } = await sb.functions.invoke('paystack-checkout', { body: { action: 'claim' } });
+    if(!error && data && data.claimed > 0){
+      loadBuyerOrders();
+      toast(data.claimed === 1
+        ? 'A guest order paid with your email has been added to your account.'
+        : data.claimed + ' guest orders paid with your email have been added to your account.');
+    }
+  }catch(e){
+    /* Non-critical — the buyer can still see and use everything else. */
+  }
 }
 
 /* ---------- BUYER REVIEW ---------- */
