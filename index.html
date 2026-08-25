@@ -1369,21 +1369,21 @@
     <div class="grid2">
       <div class="card panel">
         <div class="vendor-row">
-          <div class="avatar" style="width:48px;height:48px;font-size:15px;">AF</div>
-          <div><div style="font-weight:700; display:flex; align-items:center; gap:8px;">Amara Fabrics <span class="pill pill-approved">✓ Verified</span></div><div class="v-rating">★★★★★ 4.9 (312 reviews)</div><a style="font-size:12.5px; color:var(--green-solid); font-weight:600; cursor:pointer;" onclick="showView('vendorpublic')">View Vendor's Page →</a></div>
+          <div class="avatar" style="width:48px;height:48px;font-size:15px;" id="lv-avatar">--</div>
+          <div><div style="font-weight:700; display:flex; align-items:center; gap:8px;"><span id="lv-vendor-name">Loading…</span> <span class="pill pill-approved">✓ Verified</span></div><div class="v-rating">New on SafeDeal</div></div>
         </div>
-        <div class="product-gallery"><div></div><div></div><div></div><div></div></div>
-        <h3 style="font-size:19px; margin-bottom:8px;">Premium Ankara Set (2 pieces)</h3>
-        <p style="font-size:13.5px; color:var(--navy-soft); line-height:1.6; margin-bottom:18px;">Hand-tailored Ankara top and wrapper set, made to order in your size. Includes free alteration within 7 days.</p>
+        <div class="product-gallery"><div id="lv-image-wrap"></div><div></div><div></div><div></div></div>
+        <h3 style="font-size:19px; margin-bottom:8px;" id="lv-product-name">Loading…</h3>
+        <p style="font-size:13.5px; color:var(--navy-soft); line-height:1.6; margin-bottom:18px;" id="lv-product-desc"></p>
         <div class="protection-box"><span style="font-size:16px;">🛡️</span><p><b>SafeDeal Protection:</b> Your payment stays in escrow and is only released to the vendor after you confirm you've received your order.</p></div>
       </div>
       <div class="card panel" style="height:fit-content;">
         <h3 style="font-size:15.5px; margin-bottom:14px;">Order summary</h3>
-        <div class="line-item"><span>Quantity</span><b>1</b></div>
-        <div class="line-item"><span>Price</span><b>₦42,000</b></div>
-        <div class="line-item"><span>Delivery fee</span><b>₦3,000</b></div>
-        <div class="line-item"><span>Estimated delivery</span><b>3–5 days</b></div>
-        <div class="line-item total"><span>Total amount</span><b>₦45,000</b></div>
+        <div class="line-item"><span>Quantity</span><b id="lv-qty">1</b></div>
+        <div class="line-item"><span>Price</span><b id="lv-price">₦0</b></div>
+        <div class="line-item"><span>Delivery fee</span><b id="lv-deliveryfee">₦0</b></div>
+        <div class="line-item"><span>Estimated delivery</span><b id="lv-timeline">—</b></div>
+        <div class="line-item total"><span>Total amount</span><b id="lv-total">₦0</b></div>
         <button class="btn btn-primary" style="width:100%; margin-top:18px;" onclick="showView('checkout')">Continue to Payment</button>
         <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="openModal('cancelTxModal')">Cancel Transaction</button>
       </div>
@@ -1440,29 +1440,23 @@
       <div class="grid2">
         <div class="card panel">
           <h3 style="font-size:15px; margin-bottom:14px;">Order summary</h3>
-          <div class="line-item"><span>Premium Ankara Set × 1</span><b>₦42,000</b></div>
-          <div class="line-item"><span>Delivery fee</span><b>₦3,000</b></div>
-          <div class="line-item total"><span>Total</span><b>₦45,000</b></div>
+          <div class="line-item"><span id="co-item">Item × 1</span><b id="co-price">₦0</b></div>
+          <div class="line-item"><span>Delivery fee</span><b id="co-deliveryfee">₦0</b></div>
+          <div class="line-item total"><span>Total</span><b id="co-total">₦0</b></div>
           <div class="protection-box" style="margin-top:20px;"><span style="font-size:16px;">🛡️</span><p>Your payment is held safely until you confirm delivery.</p></div>
         </div>
         <div class="card panel">
-          <h3 style="font-size:15px; margin-bottom:14px;">Choose payment method</h3>
-          <div class="pay-option selected" onclick="selectPay(this)"><div class="radio"></div><div><b>Card</b><div style="font-size:12.5px;color:var(--navy-soft);">Visa, Mastercard, Verve</div></div></div>
-          <div class="pay-option" onclick="selectPay(this)"><div class="radio"></div><div><b>Bank transfer</b><div style="font-size:12.5px;color:var(--navy-soft);">Instant transfer via your bank app</div></div></div>
-          <div class="pay-option disabled"><div class="radio"></div><div><b>Wallet</b><div style="font-size:12.5px;color:var(--navy-soft);">Coming soon</div></div></div>
-          <div class="field" style="margin-top:16px;"><label>Card number</label><input type="text" placeholder="0000 0000 0000 0000"></div>
-          <div style="display:flex; gap:12px;">
-            <div class="field" style="flex:1;"><label>Expiry</label><input type="text" placeholder="MM/YY"></div>
-            <div class="field" style="flex:1;"><label>CVV</label><input type="text" placeholder="•••"></div>
-          </div>
-          <button class="btn btn-primary" style="width:100%;" onclick="paySuccess()">🔒 Pay securely — ₦45,000</button>
+          <h3 style="font-size:15px; margin-bottom:14px;">Pay securely</h3>
+          <p class="muted" style="margin-bottom:16px;">You'll be taken to Paystack's secure checkout page to pay by card, bank transfer, or USSD — SafeDeal never sees or stores your card details.</p>
+          <div id="checkoutFormError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger);"></div>
+          <button class="btn btn-primary" id="payNowBtn" style="width:100%;" onclick="startPaystackCheckout()">🔒 Pay Now — <span id="co-btn-total">₦0</span></button>
         </div>
       </div>
     </div>
     <div class="center-card card" id="checkoutSuccess" style="display:none; margin:0 auto; text-align:center;">
       <div class="icon-circle"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 13L9 17L19 7" stroke="#1F8A3D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3 style="font-size:20px; margin-bottom:8px;">Payment secured</h3>
-      <p style="color:var(--navy-soft); font-size:13.5px; margin-bottom:22px;">Your ₦45,000 payment is safely held in escrow. Amara Fabrics has been notified to prepare your order.</p>
+      <p style="color:var(--navy-soft); font-size:13.5px; margin-bottom:22px;" id="cs-message">Your payment is safely held in escrow.</p>
       <button class="btn btn-primary" style="width:100%;" onclick="handleTrackOrderClick()">Track My Order</button>
     </div>
   </main>
@@ -1712,14 +1706,16 @@
     <!-- CREATE LINK -->
     <div id="app-createlink" class="hidden">
       <div class="topbar"><div><h2>Create a SafeDeal Link</h2><p>Buyers pay into escrow the moment they use this link.</p></div></div>
+      <div id="createLinkFormError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger); margin-bottom:14px;">Please fill in the product name and price before continuing.</div>
       <div id="createLinkForm" class="grid2">
         <div class="card panel">
           <div class="field"><label>Product name</label><input id="cl-name" placeholder="Ankara Weekend Set" oninput="updateSummary()"></div>
-          <div class="field"><label>Product description</label><textarea rows="3" placeholder="Describe the product buyers are paying for"></textarea></div>
-          <div class="field"><label>Product category</label><select><option>Fashion & Apparel</option><option>Beauty</option><option>Electronics</option><option>Home & Living</option></select></div>
+          <div class="field"><label>Product description</label><textarea id="cl-desc" rows="3" placeholder="Describe the product buyers are paying for"></textarea></div>
+          <div class="field"><label>Product category</label><select id="cl-category"><option>Fashion & Apparel</option><option>Beauty</option><option>Electronics</option><option>Home & Living</option></select></div>
           <div class="field">
-            <label>Product images</label>
-            <div class="upload-box" onclick="fakeUpload(this,'2 images added')"><span class="ic">🖼️</span>Click to upload product photos</div>
+            <label>Product image</label>
+            <div class="upload-box" id="cl-image-box" onclick="triggerProductImageUpload()"><span class="ic">🖼️</span>Click to upload a product photo</div>
+            <input type="file" accept="image/*" id="cl-image-input" class="hidden" onchange="handleProductImageSelect(this)">
             <div class="banner-warn" style="margin-top:10px; margin-bottom:0; padding:10px 14px; font-size:12px; align-items:flex-start;">⚠️ Upload live, original photos of the actual item — not stock images. Mismatched photos are the #1 cause of buyer disputes.</div>
           </div>
           <div class="grid3">
@@ -1727,7 +1723,7 @@
             <div class="field"><label>Price (₦)</label><input id="cl-price" type="number" placeholder="20000" oninput="updateSummary()"></div>
             <div class="field"><label>Delivery fee (₦)</label><input id="cl-fee" type="number" placeholder="4500" oninput="updateSummary()"></div>
           </div>
-          <div class="field"><label>Delivery timeline</label><select><option>1–2 business days</option><option>3–5 business days</option><option>1 week</option></select></div>
+          <div class="field"><label>Delivery timeline</label><select id="cl-timeline"><option>1–2 business days</option><option>3–5 business days</option><option>1 week</option></select></div>
         </div>
         <div class="card panel" style="height:fit-content;">
           <h3>Order Summary</h3>
@@ -1761,7 +1757,7 @@
       <div class="card panel">
         <table class="table">
           <thead><tr><th>Link</th><th>Product</th><th>Amount</th><th>Status</th><th></th></tr></thead>
-          <tbody>
+          <tbody id="yourLinksBody">
             <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No payment links yet — create one to get started.</td></tr>
           </tbody>
         </table>
@@ -2428,9 +2424,18 @@ async function routeAfterAuth(session){
     var buyerNameEl = document.getElementById('buyerWelcomeName');
     if(buyerNameEl) buyerNameEl.textContent = displayName;
     showView('buyerhome');
+    loadBuyerOrders();
+    if(pendingPaySlug){
+      var slugToOpen = pendingPaySlug;
+      pendingPaySlug = null;
+      var opened = await loadLinkBySlug(slugToOpen);
+      if(opened) showView('linkview');
+    }
+    checkForPaystackReturn();
   } else if(profile.role === 'vendor'){
     const { data: vendorRow } = await sb.from('vendors').select('*').eq('profile_id', session.user.id).single();
     vendorStatus = vendorRow ? vendorRow.kyc_status : null;
+    currentVendorRowId = vendorRow ? vendorRow.id : null;
     refreshVendorStatusUI();
     var vendorNameEl = document.getElementById('vendorWelcomeName');
     if(vendorNameEl) vendorNameEl.textContent = displayName;
@@ -2451,6 +2456,19 @@ async function routeAfterAuth(session){
 if(window.location.hash === '#admin'){
   showView('adminlogin');
 }
+
+/* Visiting a real SafeDeal Link (either #pay/slug from a Copy button, or a
+   pasted link containing /pay/slug) — if already logged in as a buyer,
+   routeAfterAuth() picks this up via pendingPaySlug; if not logged in yet,
+   send them to buyer login first and reopen the link right after. */
+(function(){
+  var m = window.location.hash.match(/^#pay\/([a-z0-9-]+)/i);
+  if(m){
+    pendingPaySlug = m[1];
+    setLoginRole('buyer');
+    showView('login');
+  }
+})();
 
 async function logoutUser(){
   await sb.auth.signOut();
@@ -2573,6 +2591,9 @@ var buyerDisputeActive = false;
 var buyerLoggedIn = false;
 var pendingTrackOrderRedirect = false;
 var vendorStatus = null;
+var currentVendorRowId = null;   /* this vendor's row id in the `vendors` table, needed for payment_links.vendor_id */
+var lastGeneratedLinkUrl = '';
+var productImageMeta = { path: null, publicUrl: null };
 var setupModalShown = false;
 var pendingVerifiedModal = false;
 var protectionFeePolicyAgreed = false;
@@ -2776,6 +2797,9 @@ function showApp(name){
   }
   if(name==='profile'){
     loadPayoutBankDetails();
+  }
+  if(name==='createlink'){
+    loadVendorLinks();
   }
 }
 
@@ -3192,7 +3216,35 @@ function updateSummary(){
   document.getElementById('sum-feeamt').textContent = '₦'+safeFee.toLocaleString();
   document.getElementById('sum-vendor').textContent = '₦'+vendorReceives.toLocaleString();
 }
-function generateLink(){
+function triggerProductImageUpload(){
+  document.getElementById('cl-image-input').click();
+}
+async function handleProductImageSelect(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var box = document.getElementById('cl-image-box');
+  var url = URL.createObjectURL(file);
+  box.innerHTML = '<img src="'+url+'" alt="Product photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Uploading…</span>';
+
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session){ box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo'; return; }
+
+  var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var path = session.user.id + '/' + Date.now() + '.' + ext;
+  var uploadResult = await sb.storage.from('product-images').upload(path, file, { upsert: true });
+  if(uploadResult.error){
+    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
+    toast('Could not upload photo: ' + uploadResult.error.message);
+    return;
+  }
+  var publicUrlResult = sb.storage.from('product-images').getPublicUrl(path);
+  productImageMeta.path = path;
+  productImageMeta.publicUrl = publicUrlResult.data.publicUrl;
+  box.innerHTML = '<img src="'+url+'" alt="Product photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Photo added</span>';
+}
+
+async function generateLink(){
   if(vendorStatus !== 'verified'){
     showCreateLinkBlockedToast();
     return;
@@ -3202,14 +3254,109 @@ function generateLink(){
     openModal('pricingSetupModal');
     return;
   }
-  var name = document.getElementById('cl-name').value || 'your-product';
-  var slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,24) + '-' + Math.random().toString(36).slice(2,6);
-  document.getElementById('generatedUrl').textContent = 'safedeal.ng/pay/' + slug;
+  var name = document.getElementById('cl-name').value.trim();
+  var price = parseFloat(document.getElementById('cl-price').value) || 0;
+  var errEl = document.getElementById('createLinkFormError');
+  if(!name || price <= 0){
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  var qty = parseFloat(document.getElementById('cl-qty').value) || 1;
+  var deliveryFee = parseFloat(document.getElementById('cl-fee').value) || 0;
+  var subtotal = price * qty + deliveryFee;
+  var safeFee = subtotal > 0 ? Math.min(Math.max(Math.round(subtotal * 0.03), 500), 5000) : 0;
+  var buyerTotal = subtotal;
+  var vendorReceives = subtotal - safeFee;
+
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session || !currentVendorRowId){
+    errEl.textContent = 'Your session expired — please log out and log back in.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  var genBtn = document.getElementById('generateLinkBtn');
+  if(genBtn){ genBtn.disabled = true; genBtn.textContent = 'Generating…'; }
+
+  var slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,24) + '-' + Date.now().toString(36).slice(-6);
+  var insertResult = await sb.from('payment_links').insert({
+    vendor_id: currentVendorRowId,
+    item_name: name,
+    description: document.getElementById('cl-desc').value.trim() || null,
+    category: document.getElementById('cl-category').value,
+    delivery_timeline: document.getElementById('cl-timeline').value,
+    image_url: productImageMeta.publicUrl,
+    price: price,
+    qty: qty,
+    delivery_fee: deliveryFee,
+    fee_pct: 3,
+    fee_amount: safeFee,
+    total_amount: buyerTotal,
+    slug: slug,
+    status: 'active'
+  });
+
+  if(genBtn){ genBtn.disabled = false; genBtn.textContent = 'Generate Secure Link'; }
+
+  if(insertResult.error){
+    errEl.textContent = 'Could not create your link: ' + insertResult.error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  lastGeneratedLinkUrl = window.location.origin + window.location.pathname + '#pay/' + slug;
+  document.getElementById('generatedUrl').textContent = lastGeneratedLinkUrl;
   document.getElementById('linkSuccess').classList.remove('hidden');
   toast('SafeDeal Link generated');
   document.getElementById('linkSuccess').scrollIntoView({behavior:'smooth', block:'center'});
+
+  /* reset the form for the next link, and refresh the list below */
+  document.getElementById('cl-name').value = '';
+  document.getElementById('cl-desc').value = '';
+  document.getElementById('cl-price').value = '';
+  document.getElementById('cl-fee').value = '';
+  document.getElementById('cl-qty').value = '1';
+  document.getElementById('cl-image-box').innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
+  productImageMeta = { path: null, publicUrl: null };
+  updateSummary();
+  loadVendorLinks();
 }
-function copyLink(){ toast('Link copied to clipboard'); }
+
+async function loadVendorLinks(){
+  var body = document.getElementById('yourLinksBody');
+  if(!body || !currentVendorRowId) return;
+  var { data, error } = await sb.from('payment_links')
+    .select('id,item_name,total_amount,status,slug,created_at')
+    .eq('vendor_id', currentVendorRowId)
+    .order('created_at', { ascending: false });
+  if(error || !data || !data.length){
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No payment links yet — create one to get started.</td></tr>';
+    return;
+  }
+  var pillMap = { active:'pending', used:'secured', expired:'cancelled', cancelled:'cancelled' };
+  var labelMap = { active:'Active', used:'Used', expired:'Expired', cancelled:'Cancelled' };
+  body.innerHTML = data.map(function(link){
+    var url = window.location.origin + window.location.pathname + '#pay/' + link.slug;
+    var pillClass = pillMap[link.status] || 'pending';
+    var label = labelMap[link.status] || link.status;
+    return '<tr>'
+      + '<td><code style="font-size:12px;">/pay/'+link.slug+'</code></td>'
+      + '<td>'+link.item_name+'</td>'
+      + '<td>₦'+Number(link.total_amount).toLocaleString()+'</td>'
+      + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
+      + '<td><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText(\''+url+'\'); toast(\'Link copied to clipboard\')">Copy</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function copyLink(){
+  if(!lastGeneratedLinkUrl){ toast('Nothing to copy yet'); return; }
+  navigator.clipboard.writeText(lastGeneratedLinkUrl);
+  toast('Link copied to clipboard');
+}
 function agreeToProtectionFeePolicy(){
   protectionFeePolicyAgreed = true;
   toast('Protection fee policy accepted');
@@ -3241,10 +3388,23 @@ function openTxn(buyer, product, amount, status, date){
 }
 function openModal(id){ document.getElementById(id).classList.add('active'); }
 function closeModal(id){ document.getElementById(id||'txnModal').classList.remove('active'); }
-function confirmOpenLink(){
+function extractSlugFromInput(raw){
+  var m = raw.match(/pay\/([a-z0-9-]+)/i);
+  return m ? m[1] : raw.trim();
+}
+async function confirmOpenLink(){
   var input = document.getElementById('openLinkInput');
   var errEl = document.getElementById('openLinkError');
-  if(!input.value.trim()){
+  var raw = input.value.trim();
+  if(!raw){
+    errEl.textContent = 'Please paste a SafeDeal link to continue.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var slug = extractSlugFromInput(raw);
+  var ok = await loadLinkBySlug(slug);
+  if(!ok){
+    errEl.textContent = "We couldn't find an active SafeDeal Link matching that.";
     errEl.classList.remove('hidden');
     return;
   }
@@ -3258,10 +3418,135 @@ function confirmOpenLink(){
 function toggleNotifs(){ document.getElementById('notifPanel').classList.toggle('show'); }
 
 /* ---------- BUYER CHECKOUT ---------- */
-function selectPay(el){ document.querySelectorAll('.pay-option').forEach(function(p){ p.classList.remove('selected'); }); el.classList.add('selected'); }
-function paySuccess(){
-  document.getElementById('checkoutFormWrap').style.display='none';
-  document.getElementById('checkoutSuccess').style.display='block';
+var currentCheckoutLink = null;
+var pendingPaySlug = null;
+
+async function loadBuyerOrders(){
+  var body = document.getElementById('buyerOrdersBody');
+  if(!body) return;
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session) return;
+  var { data, error } = await sb.from('orders')
+    .select('id,amount,status,created_at,vendor_id,payment_links(item_name)')
+    .eq('buyer_id', session.user.id)
+    .order('created_at', { ascending: false });
+  var placeholderRow = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No purchases yet — once you buy through a SafeDeal link, it\'ll show up here.</td></tr>';
+  if(error || !data || !data.length){
+    body.innerHTML = placeholderRow;
+    return;
+  }
+  var vendorIds = Array.from(new Set(data.map(function(o){ return o.vendor_id; }).filter(Boolean)));
+  var vendorNames = {};
+  if(vendorIds.length){
+    var { data: vendorRows } = await sb.from('public_vendor_info').select('id,business_name').in('id', vendorIds);
+    (vendorRows || []).forEach(function(v){ vendorNames[v.id] = v.business_name; });
+  }
+  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled' };
+  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Completed', disputed:'Disputed', cancelled:'Cancelled' };
+  body.innerHTML = data.map(function(o){
+    var product = (o.payment_links && o.payment_links.item_name) || '—';
+    var vendor = vendorNames[o.vendor_id] || '—';
+    var pillClass = pillMap[o.status] || 'pending';
+    var label = labelMap[o.status] || o.status;
+    return '<tr>'
+      + '<td>'+vendor+'</td>'
+      + '<td>'+product+'</td>'
+      + '<td>₦'+Number(o.amount).toLocaleString()+'</td>'
+      + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
+      + '<td></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function loadLinkBySlug(slug){
+  var { data: link, error } = await sb.from('payment_links')
+    .select('id,slug,item_name,description,price,qty,delivery_fee,delivery_timeline,total_amount,image_url,status,vendor_id')
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .maybeSingle();
+  if(error || !link) return false;
+  var vendorName = 'This vendor';
+  if(link.vendor_id){
+    var { data: vendorRow } = await sb.from('public_vendor_info').select('business_name').eq('id', link.vendor_id).maybeSingle();
+    if(vendorRow && vendorRow.business_name) vendorName = vendorRow.business_name;
+  }
+  link.vendor_name = vendorName;
+  currentCheckoutLink = link;
+  populateLinkView(link);
+  populateCheckoutView(link);
+  return true;
+}
+function populateLinkView(link){
+  var vendorName = link.vendor_name || 'This vendor';
+  document.getElementById('lv-vendor-name').textContent = vendorName;
+  document.getElementById('lv-avatar').textContent = vendorName.slice(0,2).toUpperCase();
+  document.getElementById('lv-product-name').textContent = link.item_name;
+  document.getElementById('lv-product-desc').textContent = link.description || '';
+  document.getElementById('lv-qty').textContent = link.qty;
+  document.getElementById('lv-price').textContent = '₦'+Number(link.price).toLocaleString();
+  document.getElementById('lv-deliveryfee').textContent = '₦'+Number(link.delivery_fee||0).toLocaleString();
+  document.getElementById('lv-timeline').textContent = link.delivery_timeline || '—';
+  document.getElementById('lv-total').textContent = '₦'+Number(link.total_amount).toLocaleString();
+  var imgWrap = document.getElementById('lv-image-wrap');
+  if(imgWrap) imgWrap.innerHTML = link.image_url ? '<img src="'+link.image_url+'" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">' : '';
+}
+function populateCheckoutView(link){
+  document.getElementById('co-item').textContent = link.item_name + ' × ' + link.qty;
+  document.getElementById('co-price').textContent = '₦'+Number(link.price * link.qty).toLocaleString();
+  document.getElementById('co-deliveryfee').textContent = '₦'+Number(link.delivery_fee||0).toLocaleString();
+  document.getElementById('co-total').textContent = '₦'+Number(link.total_amount).toLocaleString();
+  document.getElementById('co-btn-total').textContent = '₦'+Number(link.total_amount).toLocaleString();
+  document.getElementById('checkoutFormWrap').style.display = 'block';
+  document.getElementById('checkoutSuccess').style.display = 'none';
+}
+
+async function startPaystackCheckout(){
+  var errEl = document.getElementById('checkoutFormError');
+  errEl.classList.add('hidden');
+  if(!currentCheckoutLink){
+    errEl.textContent = 'This link could not be loaded — please go back and try again.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var { data: sessionData } = await sb.auth.getSession();
+  if(!sessionData.session){
+    errEl.textContent = 'Please log in as a buyer before paying.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var btn = document.getElementById('payNowBtn');
+  btn.disabled = true; btn.textContent = 'Redirecting to Paystack…';
+  var { data, error } = await sb.functions.invoke('paystack-checkout', {
+    body: { action:'initialize', slug: currentCheckoutLink.slug, callbackUrl: window.location.origin + window.location.pathname }
+  });
+  if(error || !data || data.error){
+    errEl.textContent = (data && data.error) || 'Could not start payment. Please try again.';
+    errEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = '🔒 Pay Now';
+    return;
+  }
+  window.location.href = data.authorization_url;
+}
+
+/* Runs once on page load: if Paystack just redirected the buyer back with
+   a payment reference in the URL, confirm it and show the real result —
+   this replaces the old fake "click Pay, instantly succeed" demo flow. */
+async function checkForPaystackReturn(){
+  var params = new URLSearchParams(window.location.search);
+  var reference = params.get('reference') || params.get('trxref');
+  if(!reference) return;
+  history.replaceState({}, '', window.location.pathname + window.location.hash);
+  var { data, error } = await sb.functions.invoke('paystack-checkout', { body: { action:'verify', reference: reference } });
+  if(error || !data || data.error || !data.success){
+    toast((data && data.error) || 'Could not confirm your payment — contact support if you were charged.');
+    return;
+  }
+  document.getElementById('cs-message').textContent = 'Your ₦'+Number(data.amount).toLocaleString()+' payment is safely held in escrow. The vendor has been notified to prepare your order.';
+  showView('checkout');
+  document.getElementById('checkoutFormWrap').style.display = 'none';
+  document.getElementById('checkoutSuccess').style.display = 'block';
+  loadBuyerOrders();
 }
 
 /* ---------- BUYER REVIEW ---------- */
