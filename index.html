@@ -1873,39 +1873,14 @@
 
     <!-- ORDERS -->
     <div id="app-orders" class="hidden">
-      <div class="topbar"><div><h2>Orders</h2><p>Keep buyers informed — every update is visible to them in real time.</p></div></div>
-      <div class="card panel" style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
-          <div><h3 style="margin-bottom:4px;">Ankara Weekend Set</h3><p style="color:var(--navy-soft); font-size:13px;">Amara N. · Order #SD-2291</p></div>
-          <span class="pill pill-secured">Secured</span>
-        </div>
-        <div class="stepper" id="orderStepper">
-          <div class="sp done" data-s="1"><div class="ln"></div><div class="circ">✓</div><span>Preparing</span></div>
-          <div class="sp current" data-s="2"><div class="ln"></div><div class="circ">2</div><span>Packed</span></div>
-          <div class="sp" data-s="3"><div class="ln"></div><div class="circ">3</div><span>Shipped</span></div>
-          <div class="sp" data-s="4"><div class="ln"></div><div class="circ">4</div><span>Delivered</span></div>
-        </div>
-        <div class="grid2">
-          <div>
-            <div class="field"><label>Update order status</label>
-              <select id="orderStatusSelect" onchange="updateOrderStep(this.value)">
-                <option value="1">Preparing</option><option value="2" selected>Packed</option><option value="3">Shipped</option><option value="4">Delivered</option>
-              </select>
-            </div>
-            <button class="btn btn-navy btn-sm" onclick="toast('Amara N. notified of status update')">Save & Notify Buyer</button>
-          </div>
-          <div>
-            <div class="field"><label>Shipment tracking info</label><input placeholder="GIG Logistics — GG23481902NG"></div>
-            <div class="upload-box" onclick="fakeUpload(this,'Proof of shipment uploaded')" style="padding:14px;"><span class="ic" style="font-size:16px;">📎</span>Upload proof of shipment</div>
-          </div>
-        </div>
-      </div>
+      <div class="topbar"><div><h2>Orders</h2><p>Every order paid on your SafeDeal links, most recent first.</p></div></div>
+      <div class="protection-box" style="margin-bottom:16px;"><span style="font-size:16px;">📦</span><p>Marking an order as packed/shipped and adding shipment tracking is coming soon — for now, this list is your confirmation that a buyer paid, so you know to start preparing their order.</p></div>
       <div class="card panel">
         <h3>All Orders</h3>
         <table class="table">
-          <thead><tr><th>Order</th><th>Buyer</th><th>Product</th><th>Stage</th></tr></thead>
-          <tbody>
-            <tr><td colspan="4" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
+          <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th></tr></thead>
+          <tbody id="vendorOrdersBody">
+            <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1917,11 +1892,11 @@
       <div class="grid3" style="margin-bottom:20px;">
         <div class="card stat-card" style="background:var(--grad); border:none;">
           <div class="lab" style="color:rgba(255,255,255,0.85);">Available Balance</div>
-          <div class="val" style="color:#fff; font-size:28px; margin-top:6px;">₦0</div>
-          <button class="btn btn-navy btn-sm" style="margin-top:14px; background:rgba(11,31,58,0.85);" onclick="toast('Payout requested')">Request Payout</button>
+          <div class="val" id="ve-available-balance" style="color:#fff; font-size:28px; margin-top:6px;">₦0</div>
+          <button class="btn btn-navy btn-sm" style="margin-top:14px; background:rgba(11,31,58,0.85);" title="Coming soon — real bank transfers aren't built yet" onclick="toast('Real payouts to your bank account are coming soon — this balance is accurate, withdrawing it isn\'t wired up yet.')">Request Payout</button>
         </div>
-        <div class="card stat-card"><div class="lab">Pending Escrow</div><div class="val" style="font-size:24px; margin-top:6px;">₦0</div><p style="font-size:12px; color:var(--navy-soft); margin-top:8px;">Released once buyers confirm delivery.</p></div>
-        <div class="card stat-card"><div class="lab">Released Funds (lifetime)</div><div class="val" style="font-size:24px; margin-top:6px;">₦0</div><p style="font-size:12px; color:var(--navy-soft); margin-top:8px;">Total trust honored to date.</p></div>
+        <div class="card stat-card"><div class="lab">Pending Escrow</div><div class="val" id="ve-pending-escrow" style="font-size:24px; margin-top:6px;">₦0</div><p style="font-size:12px; color:var(--navy-soft); margin-top:8px;">Released once SafeDeal confirms delivery.</p></div>
+        <div class="card stat-card"><div class="lab">Released Funds (lifetime)</div><div class="val" id="ve-released-funds" style="font-size:24px; margin-top:6px;">₦0</div><p style="font-size:12px; color:var(--navy-soft); margin-top:8px;">Total trust honored to date.</p></div>
       </div>
       <div class="card panel">
         <h3>Payout History</h3>
@@ -1936,27 +1911,14 @@
 
     <!-- DISPUTES -->
     <div id="app-disputes" class="hidden">
-      <div class="topbar"><div><h2>Disputes</h2><p>A fair process — evidence, review, and a real outcome.</p></div></div>
+      <div class="topbar"><div><h2>Disputes</h2><p>A fair process — SafeDeal reviews and records a real outcome.</p></div></div>
       <div class="grid2">
         <div class="card panel">
-          <h3>Open Cases</h3>
-          <div style="display:flex; flex-direction:column; gap:10px;">
-            <div class="card panel" style="cursor:pointer; padding:16px;" onclick="openDispute()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">Bluetooth Speaker — #SD-2201</strong><span class="pill pill-open" id="vendorDisputeSD2201Pill">Open</span></div>
-              <p style="font-size:12.5px; color:var(--navy-soft);">Ifeanyi O. reports item arrived damaged.</p>
-            </div>
-            <div class="card panel" style="padding:16px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">Wig Bundle — #SD-2150</strong><span class="pill pill-resolved">Resolved</span></div>
-              <p style="font-size:12.5px; color:var(--navy-soft);">Refund declined — evidence supported vendor.</p>
-            </div>
-            <div class="card panel" style="padding:16px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">Perfume Set — #SD-2098</strong><span class="pill pill-closed">Closed</span></div>
-              <p style="font-size:12.5px; color:var(--navy-soft);">Buyer withdrew dispute after tracking update.</p>
-            </div>
-          </div>
+          <h3>Your Disputes</h3>
+          <div id="vendorDisputeList" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
         <div class="card panel" id="disputeDetail">
-          <div class="empty-state"><div class="ic">⚖️</div>Select a dispute to view details and respond.</div>
+          <div class="empty-state"><div class="ic">⚖️</div>Select a dispute to view details.</div>
         </div>
       </div>
     </div>
@@ -2169,12 +2131,18 @@
 
     <!-- ORDERS & PAYMENTS -->
     <div id="admin-orders" class="hidden">
-      <div class="topbar"><div><h2>Orders & Payments</h2><p>Every transaction across the platform. Read-only for now.</p></div></div>
+      <div class="topbar"><div><h2>Orders & Payments</h2><p>Every transaction across the platform. Release or refund once you've confirmed the outcome with both sides.</p></div></div>
+      <div class="protection-box" style="margin-bottom:16px;"><span style="font-size:16px;">🛠️</span><p><b>Scope note:</b> Release and Refund here update SafeDeal's own records (moves money between "Pending Escrow" and "Available Balance" for the vendor) — neither one yet sends a real bank transfer or calls Paystack to reverse a charge. That's a separate, later integration.</p></div>
+      <div class="grid3" style="margin-bottom:20px;">
+        <div class="card stat-card"><div class="lab">Total Held in Escrow</div><div class="val" id="ao-total-escrow" style="font-size:24px; margin-top:6px;">₦0</div></div>
+        <div class="card stat-card"><div class="lab">Total Released</div><div class="val" id="ao-total-released" style="font-size:24px; margin-top:6px;">₦0</div></div>
+        <div class="card stat-card"><div class="lab">Total Refunded</div><div class="val" id="ao-total-refunded" style="font-size:24px; margin-top:6px;">₦0</div></div>
+      </div>
       <div class="card panel">
         <table class="table">
-          <thead><tr><th>Buyer</th><th>Vendor</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th></tr></thead>
-          <tbody>
-            <tr><td colspan="6" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
+          <thead><tr><th>Buyer</th><th>Vendor</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="adminOrdersBody">
+            <tr><td colspan="7" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -2233,6 +2201,18 @@
     <p class="muted">Pick up where you left off with <b style="color:var(--navy);">Chi's Ankara Studio</b>.</p>
     <button class="btn btn-primary" style="width:100%; margin-top:8px; margin-bottom:10px;" onclick="closeModal('continueTrackingModal'); goToTrackingFromDashboard();">Continue Tracking</button>
     <button class="btn btn-ghost" style="width:100%;" onclick="closeModal('continueTrackingModal')">Not now</button>
+  </div>
+</div>
+
+<!-- FILE A DISPUTE MODAL -->
+<div class="modal-overlay" id="fileDisputeModal">
+  <div class="modal">
+    <h3>Report a problem with this order</h3>
+    <p class="muted">Your payment stays protected in escrow while SafeDeal reviews this — we'll look at both sides before releasing or refunding anything.</p>
+    <div id="fileDisputeError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger);"></div>
+    <div class="field"><label>What went wrong?</label><textarea id="fd-reason" rows="4" placeholder="e.g. Item arrived damaged, or hasn't arrived at all..."></textarea></div>
+    <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="submitBuyerDispute()">Submit Report</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModal('fileDisputeModal')">Cancel</button>
   </div>
 </div>
 
@@ -2865,6 +2845,143 @@ function showApp(name){
   if(name==='createlink'){
     loadVendorLinks();
   }
+  if(name==='orders'){
+    loadVendorOrders();
+  }
+  if(name==='escrow'){
+    loadVendorPendingEscrow();
+  }
+  if(name==='disputes'){
+    loadVendorDisputes();
+  }
+}
+
+/* ---------- VENDOR ORDERS ----------
+   Was a single hardcoded fake order ("Ankara Weekend Set" / "Amara N.")
+   with a shipment stepper that didn't persist anywhere — a vendor had no
+   real way to see that a buyer had actually paid (reported by Emmanuel).
+   This is the minimal honest fix: a real list of paid orders, so a vendor
+   knows to start preparing them. It deliberately does NOT include the
+   packed/shipped/delivered stepper from the old mock — that needs a new
+   status field and its own real build, tracked as a separate not-yet-built
+   item (shipment tracking), not silently faked again. */
+async function loadVendorOrders(){
+  var body = document.getElementById('vendorOrdersBody');
+  if(!body) return;
+  var placeholderRow = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>';
+  if(!currentVendorRowId){ body.innerHTML = placeholderRow; return; }
+  var { data, error } = await sb.from('orders')
+    .select('id,amount,status,buyer_email,created_at,payment_links(item_name)')
+    .eq('vendor_id', currentVendorRowId)
+    .order('created_at', { ascending: false });
+  if(error || !data || !data.length){
+    body.innerHTML = placeholderRow;
+    return;
+  }
+  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled', refunded:'cancelled' };
+  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Released to You', disputed:'Disputed', cancelled:'Cancelled', refunded:'Refunded to Buyer' };
+  body.innerHTML = data.map(function(o){
+    var product = (o.payment_links && o.payment_links.item_name) || '—';
+    var pillClass = pillMap[o.status] || 'pending';
+    var label = labelMap[o.status] || o.status;
+    var date = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
+    return '<tr>'
+      + '<td>'+(o.buyer_email || '—')+'</td>'
+      + '<td>'+product+'</td>'
+      + '<td>₦'+Number(o.amount).toLocaleString()+'</td>'
+      + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
+      + '<td>'+date+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
+/* All three numbers are now real: Pending Escrow (escrowed/delivered
+   orders), Available Balance (released orders — real in-app bookkeeping as
+   of the escrow-release build), and Released Funds lifetime (same total as
+   Available Balance for now, since there's no payout/withdrawal to draw it
+   down yet — that's still the one genuinely not-yet-built piece: an
+   actual bank transfer via Paystack Transfers). */
+async function loadVendorPendingEscrow(){
+  if(!currentVendorRowId) return;
+  var { data, error } = await sb.from('orders')
+    .select('amount,status')
+    .eq('vendor_id', currentVendorRowId)
+    .in('status', ['escrowed','delivered','released']);
+  if(error || !data){ return; }
+  var pending = 0, released = 0;
+  data.forEach(function(o){
+    var amt = Number(o.amount || 0);
+    if(o.status === 'released') released += amt;
+    else pending += amt;
+  });
+  var elP = document.getElementById('ve-pending-escrow'); if(elP) elP.textContent = '₦'+pending.toLocaleString();
+  var elA = document.getElementById('ve-available-balance'); if(elA) elA.textContent = '₦'+released.toLocaleString();
+  var elR = document.getElementById('ve-released-funds'); if(elR) elR.textContent = '₦'+released.toLocaleString();
+}
+
+/* ---------- SHARED: DISPUTE TIMELINE ----------
+   Used by both the vendor's read-only dispute view and admin's dispute
+   resolution view. dispute_events was created in the original schema but
+   had zero RLS policies until safedeal_escrow_disputes_migration.sql --
+   completely inaccessible to anyone until now. */
+async function loadDisputeEvents(disputeId){
+  var { data, error } = await sb.from('dispute_events')
+    .select('id,actor,event_type,note,created_at')
+    .eq('dispute_id', disputeId)
+    .order('created_at', { ascending: true });
+  if(error) return [];
+  return data || [];
+}
+function renderDisputeTimelineHTML(events){
+  if(!events.length) return '<p class="muted" style="font-size:12.5px;">No activity yet.</p>';
+  var actorLabel = { buyer:'Buyer', vendor:'Vendor', admin:'SafeDeal' };
+  var eventLabel = { opened:'reported a problem', note:'added a note', resolved:'resolved the case', under_review:'started reviewing' };
+  return events.map(function(e){
+    var when = e.created_at ? new Date(e.created_at).toLocaleString() : '';
+    var who = actorLabel[e.actor] || e.actor;
+    var what = eventLabel[e.event_type] || e.event_type;
+    return '<div class="b-t-item done"><div class="dot">•</div><h4>'+who+' '+what+'</h4><p>'+(e.note||'')+'</p><span style="font-size:11px; color:var(--navy-soft);">'+when+'</span></div>';
+  }).join('');
+}
+
+/* ---------- VENDOR DISPUTES (real data — was hardcoded demo cases) ---------- */
+var VENDOR_DISPUTES = [];
+async function loadVendorDisputes(){
+  var listEl = document.getElementById('vendorDisputeList');
+  if(!listEl) return;
+  if(!currentVendorRowId){ listEl.innerHTML = '<p class="muted" style="padding:10px 0;">No disputes on your orders.</p>'; return; }
+  var { data, error } = await sb.from('disputes')
+    .select('id,order_id,reason,status,admin_notes,created_at,resolved_at,orders(amount,buyer_email,vendor_id,payment_links(item_name))')
+    .order('created_at', { ascending: false });
+  VENDOR_DISPUTES = (error ? [] : (data || [])).filter(function(d){ return d.orders && d.orders.vendor_id === currentVendorRowId; });
+  if(!VENDOR_DISPUTES.length){
+    listEl.innerHTML = '<p class="muted" style="padding:10px 0;">No disputes on your orders.</p>';
+    document.getElementById('disputeDetail').innerHTML = '<div class="empty-state"><div class="ic">⚖️</div>Select a dispute to view details.</div>';
+    return;
+  }
+  listEl.innerHTML = VENDOR_DISPUTES.map(function(d){
+    var meta = DISPUTE_STATUS_META[d.status] || DISPUTE_STATUS_META.open;
+    var product = (d.orders && d.orders.payment_links && d.orders.payment_links.item_name) || '—';
+    var buyer = (d.orders && d.orders.buyer_email) || '—';
+    return '<div class="card panel" style="cursor:pointer; padding:16px;" onclick="openVendorDispute(\''+d.id+'\')">'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">'+product+'</strong><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+      + '<p style="font-size:12.5px; color:var(--navy-soft);">'+buyer+' reports: '+d.reason+'</p>'
+      + '</div>';
+  }).join('');
+}
+async function openVendorDispute(id){
+  var d = VENDOR_DISPUTES.find(function(x){ return x.id===id; });
+  if(!d) return;
+  var meta = DISPUTE_STATUS_META[d.status] || DISPUTE_STATUS_META.open;
+  var events = await loadDisputeEvents(id);
+  var product = (d.orders && d.orders.payment_links && d.orders.payment_links.item_name) || 'Order';
+  document.getElementById('disputeDetail').innerHTML =
+    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><h3>'+product+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+    + '<div class="line-item"><span>Buyer</span><b>'+((d.orders&&d.orders.buyer_email)||'—')+'</b></div>'
+    + '<div class="line-item total"><span>Amount held</span><b>₦'+Number(d.orders?d.orders.amount:0).toLocaleString()+'</b></div>'
+    + '<p class="muted" style="margin-top:12px;">'+d.reason+'</p>'
+    + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>SafeDeal resolution:</b> '+d.admin_notes+'</p></div>' : '')
+    + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>';
 }
 
 /* ---------- VENDOR BUSINESS PROFILE ---------- */
@@ -3705,21 +3822,62 @@ async function loadBuyerOrders(){
     var { data: vendorRows } = await sb.from('public_vendor_info').select('id,business_name').in('id', vendorIds);
     (vendorRows || []).forEach(function(v){ vendorNames[v.id] = v.business_name; });
   }
-  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled' };
-  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Completed', disputed:'Disputed', cancelled:'Cancelled' };
+  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled', refunded:'cancelled' };
+  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Completed', disputed:'Disputed', cancelled:'Cancelled', refunded:'Refunded' };
   body.innerHTML = data.map(function(o){
     var product = (o.payment_links && o.payment_links.item_name) || '—';
     var vendor = vendorNames[o.vendor_id] || '—';
     var pillClass = pillMap[o.status] || 'pending';
     var label = labelMap[o.status] || o.status;
+    var actionHtml = (o.status === 'escrowed' || o.status === 'delivered')
+      ? '<button class="btn btn-ghost btn-sm" onclick="openFileDisputeModal(\''+o.id+'\')">Report a Problem</button>'
+      : '';
     return '<tr>'
       + '<td>'+vendor+'</td>'
       + '<td>'+product+'</td>'
       + '<td>₦'+Number(o.amount).toLocaleString()+'</td>'
       + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
-      + '<td></td>'
+      + '<td>'+actionHtml+'</td>'
       + '</tr>';
   }).join('');
+}
+
+var fileDisputeOrderId = null;
+function openFileDisputeModal(orderId){
+  fileDisputeOrderId = orderId;
+  document.getElementById('fd-reason').value = '';
+  document.getElementById('fileDisputeError').classList.add('hidden');
+  openModal('fileDisputeModal');
+}
+async function submitBuyerDispute(){
+  var errEl = document.getElementById('fileDisputeError');
+  var reason = document.getElementById('fd-reason').value.trim();
+  if(!reason){
+    errEl.textContent = 'Please describe what went wrong.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+  var { data: sessionData } = await sb.auth.getSession();
+  var session = sessionData && sessionData.session;
+  if(!session){
+    errEl.textContent = 'Please log in to report a problem.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  var { data: disputeRow, error } = await sb.from('disputes')
+    .insert({ order_id: fileDisputeOrderId, raised_by: session.user.id, reason: reason })
+    .select('id').single();
+  if(error){
+    errEl.textContent = error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+  await sb.from('orders').update({ status: 'disputed' }).eq('id', fileDisputeOrderId);
+  await sb.from('dispute_events').insert({ dispute_id: disputeRow.id, actor: 'buyer', event_type: 'opened', note: reason });
+  closeModal('fileDisputeModal');
+  toast('Your report has been submitted — SafeDeal will review it and get back to you.');
+  loadBuyerOrders();
 }
 
 async function loadLinkBySlug(slug){
@@ -4035,6 +4193,7 @@ function showAdmin(name){
   document.querySelectorAll('.sidebar.mobile-nav-open').forEach(s=>s.classList.remove('mobile-nav-open'));
   if(name==='vendors') renderAdminVendorList();
   if(name==='disputes') renderAdminDisputeList();
+  if(name==='orders') renderAdminOrderList();
 }
 
 /* ---------- ADMIN: VENDOR VERIFICATION QUEUE (real Supabase data) ---------- */
@@ -4142,109 +4301,194 @@ async function adminSetVendorStatus(id, newStatus){
   toast(messages[newStatus] || 'Vendor status updated.');
 }
 
-/* ---------- ADMIN: DISPUTE MANAGEMENT ---------- */
+/* ---------- ADMIN: ORDERS & PAYMENTS (real data — was a static placeholder) ---------- */
+var ADMIN_ORDERS = [];
+async function loadAdminOrders(){
+  var { data, error } = await sb.from('orders')
+    .select('id,amount,status,buyer_email,created_at,vendor_id,payment_links(item_name)')
+    .order('created_at', { ascending: false });
+  if(error){ console.error('loadAdminOrders failed', error); ADMIN_ORDERS = []; return; }
+  ADMIN_ORDERS = data || [];
+}
+async function renderAdminOrderList(){
+  var body = document.getElementById('adminOrdersBody');
+  if(!body) return;
+  await loadAdminOrders();
+  if(!ADMIN_ORDERS.length){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>';
+    updateAdminEscrowTotals();
+    return;
+  }
+  var vendorIds = Array.from(new Set(ADMIN_ORDERS.map(function(o){ return o.vendor_id; }).filter(Boolean)));
+  var vendorNames = {};
+  if(vendorIds.length){
+    var { data: vendorRows } = await sb.from('public_vendor_info').select('id,business_name').in('id', vendorIds);
+    (vendorRows||[]).forEach(function(v){ vendorNames[v.id] = v.business_name; });
+  }
+  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled', refunded:'cancelled' };
+  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Released to Vendor', disputed:'Disputed', cancelled:'Cancelled', refunded:'Refunded to Buyer' };
+  body.innerHTML = ADMIN_ORDERS.map(function(o){
+    var product = (o.payment_links && o.payment_links.item_name) || '—';
+    var vendor = vendorNames[o.vendor_id] || '—';
+    var pillClass = pillMap[o.status] || 'pending';
+    var label = labelMap[o.status] || o.status;
+    var date = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
+    var actionHtml = (o.status === 'escrowed' || o.status === 'delivered')
+      ? '<div style="display:flex; gap:6px;"><button class="btn btn-primary btn-sm" onclick="adminReleaseOrder(\''+o.id+'\')">Release</button><button class="btn btn-danger btn-sm" onclick="adminRefundOrder(\''+o.id+'\')">Refund</button></div>'
+      : (o.status === 'disputed' ? '<span class="muted" style="font-size:12px;">Resolve in Disputes tab</span>' : '');
+    return '<tr>'
+      + '<td>'+(o.buyer_email||'—')+'</td>'
+      + '<td>'+vendor+'</td>'
+      + '<td>'+product+'</td>'
+      + '<td>₦'+Number(o.amount).toLocaleString()+'</td>'
+      + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
+      + '<td>'+date+'</td>'
+      + '<td>'+actionHtml+'</td>'
+      + '</tr>';
+  }).join('');
+  updateAdminEscrowTotals();
+}
+function updateAdminEscrowTotals(){
+  var held=0, released=0, refunded=0;
+  ADMIN_ORDERS.forEach(function(o){
+    var amt = Number(o.amount||0);
+    if(o.status==='escrowed'||o.status==='delivered') held += amt;
+    else if(o.status==='released') released += amt;
+    else if(o.status==='refunded') refunded += amt;
+  });
+  var elH=document.getElementById('ao-total-escrow'); if(elH) elH.textContent = '₦'+held.toLocaleString();
+  var elR=document.getElementById('ao-total-released'); if(elR) elR.textContent = '₦'+released.toLocaleString();
+  var elF=document.getElementById('ao-total-refunded'); if(elF) elF.textContent = '₦'+refunded.toLocaleString();
+}
+async function adminReleaseOrder(orderId){
+  if(!confirm('Release this payment to the vendor? This moves it from Pending Escrow to their Available Balance inside SafeDeal. This does not yet send a real bank transfer — that part is still being built.')) return;
+  var ok = await adminSetOrderOutcome(orderId, 'released');
+  if(ok) toast('Payment released to vendor.');
+}
+async function adminRefundOrder(orderId){
+  if(!confirm('Refund this payment to the buyer? This is recorded inside SafeDeal but does not yet call Paystack to actually reverse the charge — that part is still being built.')) return;
+  var ok = await adminSetOrderOutcome(orderId, 'refunded');
+  if(ok) toast('Payment refunded to buyer.');
+}
+/* Shared by the Orders tab's direct Release/Refund buttons AND dispute
+   resolution, so both paths keep the same numbers in sync. Pass
+   silent=true when the caller (like adminResolveDispute) will show its own
+   toast/refresh afterward instead. Returns true/false so callers know
+   whether to continue (e.g. also updating the dispute row). */
+async function adminSetOrderOutcome(orderId, outcome, silent){
+  var { error } = await sb.from('orders')
+    .update({ status: outcome, released_at: outcome === 'released' ? new Date().toISOString() : null })
+    .eq('id', orderId);
+  if(error){
+    toast('Could not update order: ' + error.message);
+    return false;
+  }
+  await sb.from('transactions')
+    .update({ status: outcome === 'released' ? 'released' : 'refunded' })
+    .eq('order_id', orderId);
+  if(!silent) renderAdminOrderList();
+  return true;
+}
+
+/* ---------- ADMIN: DISPUTE MANAGEMENT (real data — was hardcoded demo cases) ---------- */
 var DISPUTE_STATUS_META = {
   open:         { label:'Open',          pillClass:'pill-open' },
   under_review: { label:'Under Review',  pillClass:'pill-review' },
   resolved:     { label:'Resolved',      pillClass:'pill-resolved' },
   closed:       { label:'Closed',        pillClass:'pill-closed' }
 };
-var DISPUTE_STAGE_ORDER = ['open','under_review','resolved','closed'];
-var DISPUTE_STAGE_FILL = { open:'12%', under_review:'66%', resolved:'88%', closed:'100%' };
-var buyerDisputeSDDP1042Status = 'under_review';
-var vendorDisputeSD2201Status = 'open';
-var ADMIN_DISPUTES = [
-  { id:'SD-DP-1042', buyer:'Emeka U.', vendor:'TechHub NG', amount:'₦18,500', reason:'Item not as described', linkedTo:'buyer', hasEvidence:true },
-  { id:'SD-2201', buyer:'Ifeanyi O.', vendor:"Chi's Ankara Studio", amount:'₦31,000', reason:'Item arrived damaged', linkedTo:'vendor', hasEvidence:false },
-  { id:'SD-2150', buyer:'Nkechi P.', vendor:"Chi's Ankara Studio", amount:'₦45,000', reason:'Refund requested, item not as expected', linkedTo:null, status:'resolved', hasEvidence:true },
-  { id:'SD-2098', buyer:'Tobi A.', vendor:"Chi's Ankara Studio", amount:'₦22,000', reason:'Buyer withdrew after tracking update', linkedTo:null, status:'closed', hasEvidence:false }
-];
-function getAdminDisputeStatus(d){
-  if(d.linkedTo === 'buyer') return buyerDisputeSDDP1042Status;
-  if(d.linkedTo === 'vendor') return vendorDisputeSD2201Status;
-  return d.status;
+var ADMIN_DISPUTES = [];
+async function loadAdminDisputes(){
+  var { data, error } = await sb.from('disputes')
+    .select('id,order_id,raised_by,reason,status,admin_notes,created_at,resolved_at,orders(id,amount,status,buyer_email,vendor_id,payment_links(item_name))')
+    .order('created_at', { ascending: false });
+  if(error){ console.error('loadAdminDisputes failed', error); ADMIN_DISPUTES = []; return; }
+  ADMIN_DISPUTES = data || [];
 }
-function renderAdminDisputeList(){
+async function renderAdminDisputeList(){
   var list = document.getElementById('adminDisputeList');
   if(!list) return;
+  await loadAdminDisputes();
+  if(!ADMIN_DISPUTES.length){
+    list.innerHTML = '<p class="muted" style="padding:10px 0;">No disputes filed yet.</p>';
+    return;
+  }
+  var vendorIds = Array.from(new Set(ADMIN_DISPUTES.map(function(d){ return d.orders && d.orders.vendor_id; }).filter(Boolean)));
+  var vendorNames = {};
+  if(vendorIds.length){
+    var { data: vendorRows } = await sb.from('public_vendor_info').select('id,business_name').in('id', vendorIds);
+    (vendorRows||[]).forEach(function(v){ vendorNames[v.id] = v.business_name; });
+  }
   list.innerHTML = ADMIN_DISPUTES.map(function(d){
-    var status = getAdminDisputeStatus(d);
-    var meta = DISPUTE_STATUS_META[status];
+    var meta = DISPUTE_STATUS_META[d.status] || DISPUTE_STATUS_META.open;
+    var product = (d.orders && d.orders.payment_links && d.orders.payment_links.item_name) || '—';
+    var buyer = (d.orders && d.orders.buyer_email) || '—';
+    var vendor = (d.orders && vendorNames[d.orders.vendor_id]) || '—';
     return '<div class="card panel" style="cursor:pointer; padding:14px;" onclick="openAdminDispute(\''+d.id+'\')">'
-      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">#'+d.id+'</strong><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
-      + '<p style="font-size:12.5px; color:var(--navy-soft);">'+d.buyer+' vs. '+d.vendor+' · '+d.amount+'</p>'
+      + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><strong style="font-size:13.5px;">'+product+'</strong><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+      + '<p style="font-size:12.5px; color:var(--navy-soft);">'+buyer+' vs. '+vendor+'</p>'
       + '</div>';
   }).join('');
 }
-function buildDisputeTimelineHTML(status, stageDescs){
-  var currentIdx = DISPUTE_STAGE_ORDER.indexOf(status);
-  var titles = ['Open','Under review','Resolved','Closed'];
-  var items = titles.map(function(title,i){
-    var cls = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : '');
-    var dot = i < currentIdx ? '✓' : (i === currentIdx ? '●' : '');
-    return '<div class="b-t-item '+cls+'"><div class="dot">'+dot+'</div><h4>'+title+'</h4><p>'+(stageDescs[i]||'')+'</p></div>';
-  }).join('');
-  return '<div class="b-t-fill" style="height:'+DISPUTE_STAGE_FILL[status]+'"></div>'+items;
-}
-function openAdminDispute(id){
+async function openAdminDispute(id){
   var d = ADMIN_DISPUTES.find(function(x){ return x.id===id; });
   if(!d) return;
-  var status = getAdminDisputeStatus(d);
-  var meta = DISPUTE_STATUS_META[status];
-  var evidenceHtml = d.hasEvidence
-    ? '<div class="upload-box" style="padding:14px; cursor:default;"><span class="ic" style="font-size:16px;">📎</span>Evidence on file from the buyer</div>'
-    : '<p class="muted" style="font-size:12.5px;">No evidence has been uploaded for this case.</p>';
-  var timelineHtml = buildDisputeTimelineHTML(status, [
-    'Dispute submitted' + (d.hasEvidence ? ' with evidence.' : '.'),
-    'SafeDeal support is reviewing evidence from both sides.',
-    'Outcome recorded.',
-    'Case closed.'
-  ]);
+  var meta = DISPUTE_STATUS_META[d.status] || DISPUTE_STATUS_META.open;
+  var events = await loadDisputeEvents(id);
+  var product = (d.orders && d.orders.payment_links && d.orders.payment_links.item_name) || 'Order';
+  var canAct = (d.status === 'open' || d.status === 'under_review');
+  var actionsHtml = canAct
+    ? '<div class="field" style="margin-top:16px;"><label>Resolution notes</label><textarea id="adminDisputeNotes" rows="3" placeholder="Record the outcome and reasoning..."></textarea></div>'
+      + '<div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">'
+      + '<button class="btn btn-ghost btn-sm" onclick="adminMarkDisputeUnderReview(\''+d.id+'\')">Mark Under Review</button>'
+      + '<button class="btn btn-primary btn-sm" onclick="adminResolveDispute(\''+d.id+'\',\'released\')">Resolve — Release to Vendor</button>'
+      + '<button class="btn btn-danger btn-sm" onclick="adminResolveDispute(\''+d.id+'\',\'refunded\')">Resolve — Refund to Buyer</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="adminResolveDispute(\''+d.id+'\',\'closed\')">Close (No Funds Moved)</button>'
+      + '</div>'
+    : '<p class="muted" style="margin-top:16px; font-size:12.5px;">This case is already '+meta.label.toLowerCase()+' — no further action available.</p>';
   document.getElementById('adminDisputeDetail').innerHTML =
-    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><h3>#'+d.id+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
-    + '<div class="line-item"><span>Buyer</span><b>'+d.buyer+'</b></div>'
-    + '<div class="line-item"><span>Vendor</span><b>'+d.vendor+'</b></div>'
-    + '<div class="line-item total"><span>Amount held</span><b>'+d.amount+'</b></div>'
+    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><h3>'+product+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+    + '<div class="line-item"><span>Buyer</span><b>'+((d.orders&&d.orders.buyer_email)||'—')+'</b></div>'
+    + '<div class="line-item total"><span>Amount held</span><b>₦'+Number(d.orders?d.orders.amount:0).toLocaleString()+'</b></div>'
     + '<p class="muted" style="margin-top:12px;">'+d.reason+'</p>'
-    + '<div class="field" style="margin-top:16px;"><label>Evidence</label>'+evidenceHtml+'</div>'
-    + '<div class="b-timeline" style="margin-top:18px;">'+timelineHtml+'</div>'
-    + '<div class="field" style="margin-top:16px;"><label>Resolution notes</label><textarea rows="3" placeholder="Record the outcome and reasoning..."></textarea></div>'
-    + '<div style="display:flex; gap:8px; margin-top:6px;">'
-    + '<button class="btn btn-ghost btn-sm" onclick="adminSetDisputeStatus(\''+d.id+'\',\'under_review\')">Mark Under Review</button>'
-    + '<button class="btn btn-primary btn-sm" onclick="adminSetDisputeStatus(\''+d.id+'\',\'resolved\')">Mark Resolved</button>'
-    + '<button class="btn btn-danger btn-sm" onclick="adminSetDisputeStatus(\''+d.id+'\',\'closed\')">Close Case</button>'
-    + '</div>';
+    + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>Recorded resolution:</b> '+d.admin_notes+'</p></div>' : '')
+    + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>'
+    + actionsHtml;
 }
-function adminSetDisputeStatus(id, newStatus){
-  var d = ADMIN_DISPUTES.find(function(x){ return x.id===id; });
-  if(!d) return;
-  if(d.linkedTo === 'buyer'){ buyerDisputeSDDP1042Status = newStatus; syncBuyerDisputeStatus(); }
-  else if(d.linkedTo === 'vendor'){ vendorDisputeSD2201Status = newStatus; syncVendorDisputeStatus(); }
-  else { d.status = newStatus; }
+async function adminMarkDisputeUnderReview(id){
+  var { error } = await sb.from('disputes').update({ status: 'under_review' }).eq('id', id);
+  if(error){ toast('Could not update dispute: ' + error.message); return; }
+  await sb.from('dispute_events').insert({ dispute_id: id, actor: 'admin', event_type: 'under_review', note: 'SafeDeal started reviewing this case.' });
+  toast('Marked as under review.');
   renderAdminDisputeList();
   openAdminDispute(id);
-  toast('Dispute status updated.');
 }
-function syncBuyerDisputeStatus(){
-  var pill = document.getElementById('buyerDisputeStatusPill');
-  if(!pill) return;
-  var meta = DISPUTE_STATUS_META[buyerDisputeSDDP1042Status];
-  pill.className = 'pill ' + meta.pillClass;
-  pill.textContent = meta.label;
-  var timeline = document.getElementById('buyerDisputeTimeline');
-  if(timeline) timeline.innerHTML = buildDisputeTimelineHTML(buyerDisputeSDDP1042Status, [
-    'Jul 24 — Dispute submitted with photos.',
-    'Jul 25 — SafeDeal support is reviewing evidence from both sides.',
-    (buyerDisputeSDDP1042Status==='resolved'||buyerDisputeSDDP1042Status==='closed') ? 'Refund approved and processed.' : 'Awaiting outcome.',
-    buyerDisputeSDDP1042Status==='closed' ? 'Case closed.' : 'Case will close once resolved.'
-  ]);
-}
-function syncVendorDisputeStatus(){
-  var pill = document.getElementById('vendorDisputeSD2201Pill');
-  if(!pill) return;
-  var meta = DISPUTE_STATUS_META[vendorDisputeSD2201Status];
-  pill.className = 'pill ' + meta.pillClass;
-  pill.textContent = meta.label;
+/* outcome: 'released' (order money → vendor's Available Balance), 'refunded'
+   (order money → back to buyer, internal record), or 'closed' (no money
+   moves — e.g. buyer withdrew the complaint). */
+async function adminResolveDispute(id, outcome){
+  var d = ADMIN_DISPUTES.find(function(x){ return x.id===id; });
+  if(!d || !d.orders) return;
+  var confirmMsg = outcome === 'released'
+    ? 'Release this payment to the vendor and close the dispute?'
+    : outcome === 'refunded'
+    ? 'Refund this payment to the buyer and close the dispute?'
+    : 'Close this dispute with no money moved?';
+  if(!confirm(confirmMsg)) return;
+  var notesEl = document.getElementById('adminDisputeNotes');
+  var notes = notesEl ? notesEl.value.trim() : '';
+  if(outcome !== 'closed'){
+    var ok = await adminSetOrderOutcome(d.orders.id, outcome, /*silent*/ true);
+    if(!ok) return;
+  }
+  var newDisputeStatus = outcome === 'closed' ? 'closed' : 'resolved';
+  var defaultNote = outcome === 'released' ? 'Resolved: released to vendor.' : outcome === 'refunded' ? 'Resolved: refunded to buyer.' : 'Case closed, no funds moved.';
+  var { error } = await sb.from('disputes').update({ status: newDisputeStatus, admin_notes: notes, resolved_at: new Date().toISOString() }).eq('id', id);
+  if(error){ toast('Could not resolve dispute: ' + error.message); return; }
+  await sb.from('dispute_events').insert({ dispute_id: id, actor: 'admin', event_type: 'resolved', note: notes || defaultNote });
+  toast('Dispute resolved.');
+  renderAdminDisputeList();
+  openAdminDispute(id);
 }
 
 /* ---------- PROFILE AUTOSAVE ---------- */
