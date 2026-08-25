@@ -1709,11 +1709,11 @@
       <div id="createLinkFormError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger); margin-bottom:14px;">Please fill in the product name and price before continuing.</div>
       <div id="createLinkForm" class="grid2">
         <div class="card panel">
-          <div class="field"><label>Product name</label><input id="cl-name" placeholder="Ankara Weekend Set" oninput="updateSummary()"></div>
-          <div class="field"><label>Product description</label><textarea id="cl-desc" rows="3" placeholder="Describe the product buyers are paying for"></textarea></div>
+          <div class="field"><label>Product name <span style="color:var(--danger);">*</span></label><input id="cl-name" placeholder="Ankara Weekend Set" oninput="updateSummary()"></div>
+          <div class="field"><label>Product description <span style="color:var(--danger);">*</span></label><textarea id="cl-desc" rows="3" placeholder="Describe the product buyers are paying for"></textarea><p style="font-size:11.5px; color:var(--navy-soft); margin-top:6px;">Buyers are paying real money into escrow sight-unseen — a real description helps them trust what they're buying.</p></div>
           <div class="field"><label>Product category</label><select id="cl-category"><option>Fashion & Apparel</option><option>Beauty</option><option>Electronics</option><option>Home & Living</option></select></div>
           <div class="field">
-            <label>Product image</label>
+            <label>Product image <span style="color:var(--danger);">*</span></label>
             <div class="upload-box" id="cl-image-box" onclick="triggerProductImageUpload()"><span class="ic">🖼️</span>Click to upload a product photo</div>
             <input type="file" accept="image/*" id="cl-image-input" class="hidden" onchange="handleProductImageSelect(this)">
             <div class="banner-warn" style="margin-top:10px; margin-bottom:0; padding:10px 14px; font-size:12px; align-items:flex-start;">⚠️ Upload live, original photos of the actual item — not stock images. Mismatched photos are the #1 cause of buyer disputes.</div>
@@ -3297,8 +3297,10 @@ async function generateLink(){
   }
   var name = document.getElementById('cl-name').value.trim();
   var price = parseFloat(document.getElementById('cl-price').value) || 0;
+  var desc = document.getElementById('cl-desc').value.trim();
   var errEl = document.getElementById('createLinkFormError');
-  if(!name || price <= 0){
+  if(!name || price <= 0 || !desc || !productImageMeta.publicUrl){
+    errEl.textContent = 'Please fill in the product name, description, price, and a product photo before continuing — buyers need to know exactly what they\'re paying for.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -3326,7 +3328,7 @@ async function generateLink(){
   var insertResult = await sb.from('payment_links').insert({
     vendor_id: currentVendorRowId,
     item_name: name,
-    description: document.getElementById('cl-desc').value.trim() || null,
+    description: desc,
     category: document.getElementById('cl-category').value,
     delivery_timeline: document.getElementById('cl-timeline').value,
     image_url: productImageMeta.publicUrl,
