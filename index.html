@@ -3461,13 +3461,13 @@ async function handleProductImageSelect(input){
      rules that out regardless of how long the form's been open. */
   var { data: refreshData, error: refreshErr } = await sb.auth.refreshSession();
   var session = (refreshData && refreshData.session) || null;
+  var refreshFailed = !!refreshErr;
   if(refreshErr || !session){
     var { data: sessionData } = await sb.auth.getSession();
     session = sessionData && sessionData.session;
   }
   if(!session){
-    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
-    toast('Your session expired — please log out and log back in, then try the photo again.');
+    box.innerHTML = '⚠️ DEBUG: no session at all. refreshError="'+(refreshErr?refreshErr.message:'none')+'". <a style="color:var(--green-solid); cursor:pointer;" onclick="triggerProductImageUpload()">Retry</a>';
     return;
   }
 
@@ -3475,8 +3475,7 @@ async function handleProductImageSelect(input){
   var path = session.user.id + '/' + Date.now() + '.' + ext;
   var uploadResult = await sb.storage.from('product-images').upload(path, file, { upsert: true });
   if(uploadResult.error){
-    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
-    toast('Could not upload photo: ' + uploadResult.error.message);
+    box.innerHTML = '⚠️ DEBUG: upload failed. user_id="'+session.user.id+'", path="'+path+'", refreshFailed='+refreshFailed+', error="'+uploadResult.error.message+'". <a style="color:var(--green-solid); cursor:pointer;" onclick="triggerProductImageUpload()">Retry</a>';
     return;
   }
   var publicUrlResult = sb.storage.from('product-images').getPublicUrl(path);
