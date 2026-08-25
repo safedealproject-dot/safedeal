@@ -3452,9 +3452,24 @@ async function handleProductImageSelect(input){
   var url = URL.createObjectURL(file);
   box.innerHTML = '<img src="'+url+'" alt="Product photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Uploading…</span>';
 
-  var { data: sessionData } = await sb.auth.getSession();
-  var session = sessionData && sessionData.session;
-  if(!session){ box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo'; return; }
+  /* Force a fresh login token before uploading -- if this form was left open
+     a while (very common on mobile: phone screen locks, or the app is
+     backgrounded while picking a photo), the token the browser was holding
+     onto can go stale, and Supabase then treats the request as if nobody's
+     logged in -- which surfaces as this exact same "row-level security"
+     error even though the person genuinely is logged in. Refreshing first
+     rules that out regardless of how long the form's been open. */
+  var { data: refreshData, error: refreshErr } = await sb.auth.refreshSession();
+  var session = (refreshData && refreshData.session) || null;
+  if(refreshErr || !session){
+    var { data: sessionData } = await sb.auth.getSession();
+    session = sessionData && sessionData.session;
+  }
+  if(!session){
+    box.innerHTML = '<span class="ic">🖼️</span>Click to upload a product photo';
+    toast('Your session expired — please log out and log back in, then try the photo again.');
+    return;
+  }
 
   var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   var path = session.user.id + '/' + Date.now() + '.' + ext;
