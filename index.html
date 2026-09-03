@@ -2502,15 +2502,25 @@ if(window.location.hash === '#admin'){
    us with your money." payment_links has a public RLS read policy for
    active links, so this works with no session at all. Login/signup is
    only asked for once they actually try to pay — see startPaystackCheckout()
-   and the guest-checkout flow in checkForPaystackReturn(). */
-(function(){
+   and the guest-checkout flow in checkForPaystackReturn().
+
+   This runs on initial load AND on every hashchange (not just once) —
+   without the hashchange listener, a buyer whose phone browser reuses an
+   already-open SafeDeal tab (common when tapping a link from WhatsApp on
+   Android) would keep seeing whatever link/screen was open before, since
+   changing just the URL's hash on an already-loaded page does not reload
+   or re-run this script. This was reported by the team as "clicking a new
+   link shows another link, not the real one." */
+function handlePaySlugFromHash(){
   var m = window.location.hash.match(/^#pay\/([a-z0-9-]+)/i);
   if(m){
     loadLinkBySlug(m[1]).then(function(ok){
       if(ok) showView('linkview');
     });
   }
-})();
+}
+handlePaySlugFromHash();
+window.addEventListener('hashchange', handlePaySlugFromHash);
 checkForPaystackReturn();
 
 async function logoutUser(){
