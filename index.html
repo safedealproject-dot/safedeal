@@ -1318,9 +1318,7 @@
           <button class="notif-bell" onclick="toggleNotifs()" aria-label="Notifications">🔔<span class="notif-dot"></span></button>
           <div class="notif-panel" id="notifPanel">
             <h5>Notifications</h5>
-            <div class="notif-item"><b>Order shipped</b><p>Chi's Ankara Studio shipped your order.</p><span>2h ago</span></div>
-            <div class="notif-item"><b>Payment secured</b><p>Your ₦24,500 payment is held safely in escrow.</p><span>Yesterday</span></div>
-            <div class="notif-item"><b>Dispute update</b><p>Your Bluetooth Speaker case moved to Under Review.</p><span>2 days ago</span></div>
+            <div id="buyerNotifItems"><p class="muted" style="font-size:12.5px; padding:6px 0;">No activity yet.</p></div>
           </div>
         </div>
         <span class="pill pill-approved">🛍️ Buyer account</span>
@@ -1335,9 +1333,9 @@
       <button class="btn btn-primary btn-sm" onclick="linkViewOrigin='buyerhome'; openModal('openLinkModal')">+ Open a SafeDeal Link</button>
     </div>
     <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);">
-      <div class="card stat-card"><div class="ic">🔒</div><div class="val" data-count2="0">0</div><div class="lab">Active in Escrow</div></div>
-      <div class="card stat-card"><div class="ic">✅</div><div class="val" data-count2="0">0</div><div class="lab">Completed Purchases</div></div>
-      <div class="card stat-card"><div class="ic">💸</div><div class="val">₦<span data-count2="0">0</span></div><div class="lab">Total Spent Safely</div></div>
+      <div class="card stat-card"><div class="ic">🔒</div><div class="val" id="bh-active-escrow">0</div><div class="lab">Active in Escrow</div></div>
+      <div class="card stat-card"><div class="ic">✅</div><div class="val" id="bh-completed">0</div><div class="lab">Completed Purchases</div></div>
+      <div class="card stat-card"><div class="ic">💸</div><div class="val">₦<span id="bh-total-spent">0</span></div><div class="lab">Total Spent Safely</div></div>
     </div>
     <div class="card panel">
       <h3>My Purchases</h3>
@@ -1682,27 +1680,25 @@
             <button class="notif-bell" onclick="toggleVendorNotifs()" aria-label="Notifications">🔔<span class="notif-dot"></span></button>
             <div class="notif-panel" id="vendorNotifPanel">
               <h5>Notifications</h5>
-              <div class="notif-item"><b>Order shipped</b><p>Your order for Amara N. is on its way via GIG Logistics.</p><span>2h ago</span></div>
-              <div class="notif-item"><b>Escrow secured</b><p>₦24,500 was placed in escrow for Ankara Weekend Set.</p><span>Yesterday</span></div>
-              <div class="notif-item"><b>Dispute opened</b><p>Ifeanyi O. opened a dispute on Bluetooth Speaker.</p><span>2 days ago</span></div>
+              <div id="vendorNotifItems"><p class="muted" style="font-size:12.5px; padding:6px 0;">No activity yet.</p></div>
             </div>
           </div>
           <button class="btn btn-primary btn-sm" id="dashCreateLinkBtn" onclick="handleCreateLinkClick()">+ Create SafeDeal Link</button>
         </div>
       </div>
       <div class="stat-cards">
-        <div class="card stat-card"><div class="ic">🔗</div><div class="val" data-count2="0">0</div><div class="lab">Active Links</div></div>
-        <div class="card stat-card"><div class="ic">⏳</div><div class="val" data-count2="0">0</div><div class="lab">Pending</div></div>
-        <div class="card stat-card"><div class="ic">🔒</div><div class="val" data-count2="0">0</div><div class="lab">Secured</div></div>
-        <div class="card stat-card"><div class="ic">✅</div><div class="val" data-count2="0">0</div><div class="lab">Completed</div></div>
-        <div class="card stat-card"><div class="ic">💰</div><div class="val">₦<span data-count2="0">0</span></div><div class="lab">Total Revenue</div></div>
+        <div class="card stat-card"><div class="ic">🔗</div><div class="val" id="vd-active-links">0</div><div class="lab">Active Links</div></div>
+        <div class="card stat-card"><div class="ic">⏳</div><div class="val" id="vd-pending">0</div><div class="lab">Pending</div></div>
+        <div class="card stat-card"><div class="ic">🔒</div><div class="val" id="vd-secured">0</div><div class="lab">Secured</div></div>
+        <div class="card stat-card"><div class="ic">✅</div><div class="val" id="vd-completed">0</div><div class="lab">Completed</div></div>
+        <div class="card stat-card"><div class="ic">💰</div><div class="val">₦<span id="vd-total-revenue">0</span></div><div class="lab">Total Revenue</div></div>
       </div>
       <div class="grid2">
         <div class="card panel">
           <h3>Recent Transactions</h3>
           <table class="table">
             <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-            <tbody>
+            <tbody id="vendorDashboardRecentTx">
               <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No transactions yet — sales will appear here once buyers start ordering.</td></tr>
             </tbody>
           </table>
@@ -2211,8 +2207,21 @@
     <p class="muted">Your payment stays protected in escrow while SafeDeal reviews this — we'll look at both sides before releasing or refunding anything.</p>
     <div id="fileDisputeError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger);"></div>
     <div class="field"><label>What went wrong?</label><textarea id="fd-reason" rows="4" placeholder="e.g. Item arrived damaged, or hasn't arrived at all..."></textarea></div>
-    <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="submitBuyerDispute()">Submit Report</button>
+    <div class="field">
+      <label>Photo evidence <span class="muted" style="font-weight:400;">(optional, but helps your case)</span></label>
+      <div class="upload-box" id="fd-photo-box" onclick="document.getElementById('fd-photo-input').click()"><span class="ic">📷</span><span id="fd-photo-box-label">Click to add a photo of the item you received</span></div>
+      <input type="file" accept="image/*" capture="environment" id="fd-photo-input" class="hidden" onchange="handleDisputePhotoSelect(this)">
+    </div>
+    <button class="btn btn-primary" id="fd-submit-btn" style="width:100%; margin-top:8px;" onclick="submitBuyerDispute()">Submit Report</button>
     <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModal('fileDisputeModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- VIEW DISPUTE MODAL (buyer, read-only) -->
+<div class="modal-overlay" id="viewDisputeModal">
+  <div class="modal">
+    <div id="viewDisputeContent"></div>
+    <button class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal('viewDisputeModal')">Close</button>
   </div>
 </div>
 
@@ -2837,6 +2846,9 @@ function showApp(name){
   if(navBtn) navBtn.classList.add('active');
   document.querySelectorAll('.sidebar.mobile-nav-open').forEach(s=>s.classList.remove('mobile-nav-open'));
   var main = document.querySelector('.main-area'); if(main) main.scrollTo(0,0);
+  if(name==='dashboard'){
+    loadVendorDashboardHome();
+  }
   if(name==='dashboard' && pendingVerifiedModal){
     pendingVerifiedModal = false;
     openModal('verifiedModal');
@@ -2865,6 +2877,92 @@ function showApp(name){
     loadVendorDisputes();
   }
 }
+
+/* ---------- VENDOR DASHBOARD HOME ----------
+   The 5 stat cards, "Recent Transactions" table, and notification bell on
+   the vendor Dashboard tab were all decorative (fixed numbers, a fake
+   "Amara N." order, fake notification text). Two real queries — one on
+   payment_links, one on orders, both already-established, safe reads used
+   elsewhere in the app — replace all of it with real numbers. Does not
+   touch checkout/escrow logic at all. */
+async function loadVendorDashboardHome(){
+  if(!currentVendorRowId) return;
+  var elLinks = document.getElementById('vd-active-links');
+  var elPending = document.getElementById('vd-pending');
+  var elSecured = document.getElementById('vd-secured');
+  var elCompleted = document.getElementById('vd-completed');
+  var elRevenue = document.getElementById('vd-total-revenue');
+  var txBody = document.getElementById('vendorDashboardRecentTx');
+  var notifEl = document.getElementById('vendorNotifItems');
+
+  var { data: links } = await sb.from('payment_links')
+    .select('status').eq('vendor_id', currentVendorRowId);
+  var activeLinks = (links || []).filter(function(l){ return l.status === 'active'; }).length;
+  if(elLinks) elLinks.textContent = activeLinks;
+
+  var { data: orders, error } = await sb.from('orders')
+    .select('id,amount,status,buyer_email,created_at,payment_links(item_name)')
+    .eq('vendor_id', currentVendorRowId)
+    .order('created_at', { ascending: false });
+  if(error || !orders){ return; }
+
+  var pending = 0, secured = 0, completed = 0, revenue = 0;
+  orders.forEach(function(o){
+    var amt = Number(o.amount || 0);
+    if(o.status === 'awaiting_payment') pending++;
+    else if(o.status === 'escrowed' || o.status === 'delivered'){ secured++; revenue += amt; }
+    else if(o.status === 'released'){ completed++; revenue += amt; }
+  });
+  if(elPending) elPending.textContent = pending;
+  if(elSecured) elSecured.textContent = secured;
+  if(elCompleted) elCompleted.textContent = completed;
+  if(elRevenue) elRevenue.textContent = revenue.toLocaleString();
+
+  var pillMap = { awaiting_payment:'pending', escrowed:'secured', delivered:'secured', released:'approved', disputed:'disputed', cancelled:'cancelled', refunded:'cancelled' };
+  var labelMap = { awaiting_payment:'Awaiting Payment', escrowed:'Secured in Escrow', delivered:'Delivered', released:'Released to You', disputed:'Disputed', cancelled:'Cancelled', refunded:'Refunded to Buyer' };
+  if(txBody){
+    var recentOrders = orders.slice(0,5);
+    if(!recentOrders.length){
+      txBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No transactions yet — sales will appear here once buyers start ordering.</td></tr>';
+    } else {
+      txBody.innerHTML = recentOrders.map(function(o){
+        var product = (o.payment_links && o.payment_links.item_name) || '—';
+        var pillClass = pillMap[o.status] || 'pending';
+        var label = labelMap[o.status] || o.status;
+        var date = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
+        return '<tr>'
+          + '<td>'+(o.buyer_email || '—')+'</td>'
+          + '<td>'+product+'</td>'
+          + '<td>₦'+amt_fmt(o.amount)+'</td>'
+          + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
+          + '<td>'+date+'</td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
+
+  if(notifEl){
+    var notifLabel = {
+      escrowed: { icon:'💰', title:'New order paid' },
+      delivered: { icon:'💰', title:'New order paid' },
+      disputed: { icon:'⚖️', title:'Dispute opened' },
+      released: { icon:'✅', title:'Escrow released to you' },
+      refunded: { icon:'↩️', title:'Refunded to buyer' }
+    };
+    var recentNotifs = orders.filter(function(o){ return notifLabel[o.status]; }).slice(0,5);
+    if(!recentNotifs.length){
+      notifEl.innerHTML = '<p class="muted" style="font-size:12.5px; padding:6px 0;">No activity yet.</p>';
+    } else {
+      notifEl.innerHTML = recentNotifs.map(function(o){
+        var meta = notifLabel[o.status];
+        var product = (o.payment_links && o.payment_links.item_name) || 'an order';
+        var when = o.created_at ? new Date(o.created_at).toLocaleDateString() : '';
+        return '<div class="notif-item"><b>'+meta.icon+' '+meta.title+'</b><p>₦'+amt_fmt(o.amount)+' — '+product+'</p><span>'+when+'</span></div>';
+      }).join('');
+    }
+  }
+}
+function amt_fmt(n){ return Number(n||0).toLocaleString(); }
 
 /* ---------- VENDOR ORDERS ----------
    Was a single hardcoded fake order ("Ankara Weekend Set" / "Amara N.")
@@ -2936,7 +3034,7 @@ async function loadVendorPendingEscrow(){
    completely inaccessible to anyone until now. */
 async function loadDisputeEvents(disputeId){
   var { data, error } = await sb.from('dispute_events')
-    .select('id,actor,event_type,note,created_at')
+    .select('id,actor,event_type,note,image_url,created_at')
     .eq('dispute_id', disputeId)
     .order('created_at', { ascending: true });
   if(error) return [];
@@ -2950,8 +3048,25 @@ function renderDisputeTimelineHTML(events){
     var when = e.created_at ? new Date(e.created_at).toLocaleString() : '';
     var who = actorLabel[e.actor] || e.actor;
     var what = eventLabel[e.event_type] || e.event_type;
-    return '<div class="b-t-item done"><div class="dot">•</div><h4>'+who+' '+what+'</h4><p>'+(e.note||'')+'</p><span style="font-size:11px; color:var(--navy-soft);">'+when+'</span></div>';
+    var imgHtml = e.image_url ? '<div class="dispute-evt-img" data-event-id="'+e.id+'" style="margin-top:6px;"><span class="muted" style="font-size:11px;">Loading photo…</span></div>' : '';
+    return '<div class="b-t-item done"><div class="dot">•</div><h4>'+who+' '+what+'</h4><p>'+(e.note||'')+'</p>'+imgHtml+'<span style="font-size:11px; color:var(--navy-soft);">'+when+'</span></div>';
   }).join('');
+}
+/* Photos live in a private bucket (see safedeal_dispute_evidence_migration.sql),
+   so each one needs its own signed URL rather than a plain src -- same
+   pattern already used for vendor KYC selfies. Called right after
+   rendering a timeline so any events with a photo fill in asynchronously. */
+async function attachDisputeEvidenceImages(containerEl, events){
+  if(!containerEl || !events) return;
+  var withImages = events.filter(function(e){ return e.image_url; });
+  for(var i=0;i<withImages.length;i++){
+    var e = withImages[i];
+    var box = containerEl.querySelector('.dispute-evt-img[data-event-id="'+e.id+'"]');
+    if(!box) continue;
+    var { data, error } = await sb.storage.from('dispute-evidence').createSignedUrl(e.image_url, 300);
+    if(error || !data){ box.innerHTML = '<span class="muted" style="font-size:11px;">Could not load photo.</span>'; continue; }
+    box.innerHTML = '<img src="'+data.signedUrl+'" alt="Evidence photo" style="max-width:220px; border-radius:10px; border:1px solid var(--border); display:block;">';
+  }
 }
 
 /* ---------- VENDOR DISPUTES (real data — was hardcoded demo cases) ---------- */
@@ -2992,6 +3107,7 @@ async function openVendorDispute(id){
     + '<p class="muted" style="margin-top:12px;">'+d.reason+'</p>'
     + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>SafeDeal resolution:</b> '+d.admin_notes+'</p></div>' : '')
     + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>';
+  attachDisputeEvidenceImages(document.getElementById('disputeDetail'), events);
 }
 
 /* ---------- VENDOR BUSINESS PROFILE ---------- */
@@ -3822,6 +3938,7 @@ async function loadBuyerOrders(){
     .eq('buyer_id', session.user.id)
     .order('created_at', { ascending: false });
   var placeholderRow = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No purchases yet — once you buy through a SafeDeal link, it\'ll show up here.</td></tr>';
+  renderBuyerHomeFromOrders(error ? [] : (data || []));
   if(error || !data || !data.length){
     body.innerHTML = placeholderRow;
     return;
@@ -3839,9 +3956,12 @@ async function loadBuyerOrders(){
     var vendor = vendorNames[o.vendor_id] || '—';
     var pillClass = pillMap[o.status] || 'pending';
     var label = labelMap[o.status] || o.status;
-    var actionHtml = (o.status === 'escrowed' || o.status === 'delivered')
-      ? '<button class="btn btn-ghost btn-sm" onclick="openFileDisputeModal(\''+o.id+'\')">Report a Problem</button>'
-      : '';
+    var actionHtml = '';
+    if(o.status === 'escrowed' || o.status === 'delivered'){
+      actionHtml = '<button class="btn btn-ghost btn-sm" onclick="openFileDisputeModal(\''+o.id+'\')">Report a Problem</button>';
+    } else if(o.status === 'disputed' || o.status === 'refunded'){
+      actionHtml = '<button class="btn btn-ghost btn-sm" onclick="openBuyerDisputeView(\''+o.id+'\')">View Dispute</button>';
+    }
     return '<tr>'
       + '<td>'+vendor+'</td>'
       + '<td>'+product+'</td>'
@@ -3852,12 +3972,120 @@ async function loadBuyerOrders(){
   }).join('');
 }
 
+/* Buyer home stat cards + notification bell — both were purely decorative
+   (fixed numbers, fake vendor names). Reuses the same orders data
+   loadBuyerOrders() already fetches, so this is a free upgrade with no
+   new query and no risk to the checkout/escrow path. */
+function renderBuyerHomeFromOrders(orders){
+  var elEscrow = document.getElementById('bh-active-escrow');
+  var elDone = document.getElementById('bh-completed');
+  var elSpent = document.getElementById('bh-total-spent');
+  var notifEl = document.getElementById('buyerNotifItems');
+  if(!elEscrow && !notifEl) return;
+  var activeEscrow = 0, completed = 0, spent = 0;
+  orders.forEach(function(o){
+    var amt = Number(o.amount || 0);
+    if(o.status === 'escrowed' || o.status === 'delivered'){ activeEscrow++; spent += amt; }
+    else if(o.status === 'released'){ completed++; spent += amt; }
+  });
+  if(elEscrow) elEscrow.textContent = activeEscrow;
+  if(elDone) elDone.textContent = completed;
+  if(elSpent) elSpent.textContent = spent.toLocaleString();
+  if(notifEl){
+    var notifLabel = {
+      escrowed: { icon:'🔒', title:'Payment secured' },
+      delivered: { icon:'🔒', title:'Payment secured' },
+      released: { icon:'✅', title:'Order completed' },
+      disputed: { icon:'⚖️', title:'Dispute in progress' },
+      refunded: { icon:'↩️', title:'Refunded' }
+    };
+    var recent = orders.filter(function(o){ return notifLabel[o.status]; }).slice(0,5);
+    if(!recent.length){
+      notifEl.innerHTML = '<p class="muted" style="font-size:12.5px; padding:6px 0;">No activity yet.</p>';
+    } else {
+      notifEl.innerHTML = recent.map(function(o){
+        var meta = notifLabel[o.status];
+        var product = (o.payment_links && o.payment_links.item_name) || 'your order';
+        var when = o.created_at ? new Date(o.created_at).toLocaleDateString() : '';
+        return '<div class="notif-item"><b>'+meta.icon+' '+meta.title+'</b><p>₦'+Number(o.amount).toLocaleString()+' — '+product+'</p><span>'+when+'</span></div>';
+      }).join('');
+    }
+  }
+}
+
+/* Buyer-side read-only dispute view — mirrors openVendorDispute(). Before
+   this, a buyer who filed a dispute only ever saw a "Disputed" pill with
+   no way to see their own reason, status, or SafeDeal's resolution. */
+async function openBuyerDisputeView(orderId){
+  var contentEl = document.getElementById('viewDisputeContent');
+  contentEl.innerHTML = '<p class="muted">Loading…</p>';
+  openModal('viewDisputeModal');
+  var { data: d, error } = await sb.from('disputes')
+    .select('id,reason,status,admin_notes,created_at,resolved_at,orders(amount,status,payment_links(item_name))')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if(error || !d){
+    contentEl.innerHTML = '<h3>Dispute details</h3><p class="muted">Could not load this dispute.</p>';
+    return;
+  }
+  var meta = DISPUTE_STATUS_META[d.status] || DISPUTE_STATUS_META.open;
+  var events = await loadDisputeEvents(d.id);
+  var product = (d.orders && d.orders.payment_links && d.orders.payment_links.item_name) || 'Order';
+  contentEl.innerHTML =
+    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><h3>'+product+'</h3><span class="pill '+meta.pillClass+'">'+meta.label+'</span></div>'
+    + '<div class="line-item total"><span>Amount held</span><b>₦'+Number(d.orders?d.orders.amount:0).toLocaleString()+'</b></div>'
+    + '<p class="muted" style="margin-top:12px;"><b>What you reported:</b> '+d.reason+'</p>'
+    + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>SafeDeal resolution:</b> '+d.admin_notes+'</p></div>' : '')
+    + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>';
+  attachDisputeEvidenceImages(contentEl, events);
+}
+
 var fileDisputeOrderId = null;
+var disputePhotoMeta = { path: null };
 function openFileDisputeModal(orderId){
   fileDisputeOrderId = orderId;
+  disputePhotoMeta.path = null;
   document.getElementById('fd-reason').value = '';
+  document.getElementById('fd-photo-box').innerHTML = '<span class="ic">📷</span><span id="fd-photo-box-label">Click to add a photo of the item you received</span>';
   document.getElementById('fileDisputeError').classList.add('hidden');
   openModal('fileDisputeModal');
+}
+/* Optional photo on "Report a Problem" — buyers asked for this so their
+   evidence isn't just a text description. Uploads immediately on
+   selection (same pattern as the product-photo upload on Create Link),
+   into the private dispute-evidence bucket, path scoped to the buyer's own
+   folder so RLS matches the storage policy exactly. */
+async function handleDisputePhotoSelect(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var box = document.getElementById('fd-photo-box');
+  var previewUrl = URL.createObjectURL(file);
+  box.innerHTML = '<img src="'+previewUrl+'" alt="Evidence photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Uploading…</span>';
+
+  var { data: refreshData, error: refreshErr } = await sb.auth.refreshSession();
+  var session = (refreshData && refreshData.session) || null;
+  if(refreshErr || !session){
+    var { data: sessionData } = await sb.auth.getSession();
+    session = sessionData && sessionData.session;
+  }
+  if(!session){
+    box.innerHTML = '<span class="ic">📷</span>Click to add a photo of the item you received';
+    toast('Your session expired — please log out and log back in, then try the photo again.');
+    return;
+  }
+
+  var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var path = session.user.id + '/' + (fileDisputeOrderId || 'order') + '-' + Date.now() + '.' + ext;
+  var uploadResult = await sb.storage.from('dispute-evidence').upload(path, file, { upsert: true });
+  if(uploadResult.error){
+    box.innerHTML = '<span class="ic">📷</span>Click to add a photo of the item you received';
+    toast('Could not upload photo: ' + uploadResult.error.message);
+    return;
+  }
+  disputePhotoMeta.path = path;
+  box.innerHTML = '<img src="'+previewUrl+'" alt="Evidence photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Photo added</span>';
 }
 async function submitBuyerDispute(){
   var errEl = document.getElementById('fileDisputeError');
@@ -3884,7 +4112,7 @@ async function submitBuyerDispute(){
     return;
   }
   await sb.from('orders').update({ status: 'disputed' }).eq('id', fileDisputeOrderId);
-  await sb.from('dispute_events').insert({ dispute_id: disputeRow.id, actor: 'buyer', event_type: 'opened', note: reason });
+  await sb.from('dispute_events').insert({ dispute_id: disputeRow.id, actor: 'buyer', event_type: 'opened', note: reason, image_url: disputePhotoMeta.path });
   closeModal('fileDisputeModal');
   toast('Your report has been submitted — SafeDeal will review it and get back to you.');
   loadBuyerOrders();
@@ -4464,6 +4692,7 @@ async function openAdminDispute(id){
     + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>Recorded resolution:</b> '+d.admin_notes+'</p></div>' : '')
     + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>'
     + actionsHtml;
+  attachDisputeEvidenceImages(document.getElementById('adminDisputeDetail'), events);
 }
 async function adminMarkDisputeUnderReview(id){
   var { error } = await sb.from('disputes').update({ status: 'under_review' }).eq('id', id);
