@@ -1870,11 +1870,11 @@
     <!-- ORDERS -->
     <div id="app-orders" class="hidden">
       <div class="topbar"><div><h2>Orders</h2><p>Every order paid on your SafeDeal links, most recent first.</p></div></div>
-      <div class="protection-box" style="margin-bottom:16px;"><span style="font-size:16px;">📦</span><p>Marking an order as packed/shipped and adding shipment tracking is coming soon — for now, this list is your confirmation that a buyer paid, so you know to start preparing their order.</p></div>
+      <div class="protection-box" style="margin-bottom:16px;"><span style="font-size:16px;">📦</span><p>Once an order is secured in escrow, mark it as shipped with a live photo of the item — that photo is what SafeDeal compares against the buyer's own evidence if a dispute ever comes up. Full shipment tracking (carrier, tracking number) is still coming soon.</p></div>
       <div class="card panel">
         <h3>All Orders</h3>
         <table class="table">
-          <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th></tr></thead>
+          <thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Escrow Status</th><th>Date</th><th>Shipping</th></tr></thead>
           <tbody id="vendorOrdersBody">
             <tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>
           </tbody>
@@ -2214,6 +2214,22 @@
     </div>
     <button class="btn btn-primary" id="fd-submit-btn" style="width:100%; margin-top:8px;" onclick="submitBuyerDispute()">Submit Report</button>
     <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModal('fileDisputeModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- MARK AS SHIPPED MODAL (vendor) -->
+<div class="modal-overlay" id="markShippedModal">
+  <div class="modal">
+    <h3>Mark this order as shipped</h3>
+    <p class="muted">Take a live photo of the item right before it goes out — this is what SafeDeal (and, if there's ever a dispute, admin) will compare against the buyer's own "item received" photo.</p>
+    <div id="markShippedError" class="banner-warn hidden" style="background:var(--danger-bg); border-color:#f0b8b8; color:var(--danger);"></div>
+    <div class="field">
+      <label>Photo of the item <span style="color:var(--danger);">*</span></label>
+      <div class="upload-box" id="ms-photo-box" onclick="document.getElementById('ms-photo-input').click()"><span class="ic">📷</span>Click to take a photo of the item</div>
+      <input type="file" accept="image/*" capture="environment" id="ms-photo-input" class="hidden" onchange="handleShipmentPhotoSelect(this)">
+    </div>
+    <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="submitMarkShipped()">Confirm Shipped</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="closeModal('markShippedModal')">Cancel</button>
   </div>
 </div>
 
@@ -2976,10 +2992,10 @@ function amt_fmt(n){ return Number(n||0).toLocaleString(); }
 async function loadVendorOrders(){
   var body = document.getElementById('vendorOrdersBody');
   if(!body) return;
-  var placeholderRow = '<tr><td colspan="5" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>';
+  var placeholderRow = '<tr><td colspan="6" style="text-align:center; color:var(--navy-soft); padding:28px 0;">No orders yet.</td></tr>';
   if(!currentVendorRowId){ body.innerHTML = placeholderRow; return; }
   var { data, error } = await sb.from('orders')
-    .select('id,amount,status,buyer_email,created_at,payment_links(item_name)')
+    .select('id,amount,status,buyer_email,created_at,shipment_photo_url,payment_links(item_name)')
     .eq('vendor_id', currentVendorRowId)
     .order('created_at', { ascending: false });
   if(error || !data || !data.length){
@@ -2993,14 +3009,81 @@ async function loadVendorOrders(){
     var pillClass = pillMap[o.status] || 'pending';
     var label = labelMap[o.status] || o.status;
     var date = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
+    var shipHtml = o.shipment_photo_url
+      ? '<span class="pill pill-approved" title="Shipping photo on file">📦 Shipped</span>'
+      : (o.status === 'escrowed' ? '<button class="btn btn-ghost btn-sm" onclick="openMarkShippedModal(\''+o.id+'\')">Mark as Shipped</button>' : '—');
     return '<tr>'
       + '<td>'+(o.buyer_email || '—')+'</td>'
       + '<td>'+product+'</td>'
       + '<td>₦'+Number(o.amount).toLocaleString()+'</td>'
       + '<td><span class="pill pill-'+pillClass+'">'+label+'</span></td>'
       + '<td>'+date+'</td>'
+      + '<td>'+shipHtml+'</td>'
       + '</tr>';
   }).join('');
+}
+
+var markShippedOrderId = null;
+var shipmentPhotoMeta = { path: null };
+function openMarkShippedModal(orderId){
+  markShippedOrderId = orderId;
+  shipmentPhotoMeta.path = null;
+  document.getElementById('ms-photo-box').innerHTML = '<span class="ic">📷</span>Click to take a photo of the item';
+  document.getElementById('markShippedError').classList.add('hidden');
+  openModal('markShippedModal');
+}
+/* Same upload-immediately-on-selection pattern already used for product
+   photos and dispute evidence -- into the private shipment-photos bucket,
+   path scoped to the vendor's own auth uid folder. */
+async function handleShipmentPhotoSelect(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var box = document.getElementById('ms-photo-box');
+  var previewUrl = URL.createObjectURL(file);
+  box.innerHTML = '<img src="'+previewUrl+'" alt="Shipment photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Uploading…</span>';
+
+  var { data: refreshData, error: refreshErr } = await sb.auth.refreshSession();
+  var session = (refreshData && refreshData.session) || null;
+  if(refreshErr || !session){
+    var { data: sessionData } = await sb.auth.getSession();
+    session = sessionData && sessionData.session;
+  }
+  if(!session){
+    box.innerHTML = '<span class="ic">📷</span>Click to take a photo of the item';
+    toast('Your session expired — please log out and log back in, then try the photo again.');
+    return;
+  }
+
+  var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var path = session.user.id + '/' + (markShippedOrderId || 'order') + '-' + Date.now() + '.' + ext;
+  var uploadResult = await sb.storage.from('shipment-photos').upload(path, file, { upsert: true });
+  if(uploadResult.error){
+    box.innerHTML = '<span class="ic">📷</span>Click to take a photo of the item';
+    toast('Could not upload photo: ' + uploadResult.error.message);
+    return;
+  }
+  shipmentPhotoMeta.path = path;
+  box.innerHTML = '<img src="'+previewUrl+'" alt="Shipment photo preview" style="width:64px; height:64px; border-radius:10px; object-fit:cover; vertical-align:middle;"> <span style="color:var(--green-solid); font-weight:600;">Photo added</span>';
+}
+async function submitMarkShipped(){
+  var errEl = document.getElementById('markShippedError');
+  if(!shipmentPhotoMeta.path){
+    errEl.textContent = 'Please add a photo of the item before confirming.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.classList.add('hidden');
+  var { error } = await sb.from('orders')
+    .update({ shipment_photo_url: shipmentPhotoMeta.path, shipped_at: new Date().toISOString() })
+    .eq('id', markShippedOrderId);
+  if(error){
+    errEl.textContent = error.message;
+    errEl.classList.remove('hidden');
+    return;
+  }
+  closeModal('markShippedModal');
+  toast('Marked as shipped.');
+  loadVendorOrders();
 }
 
 /* All three numbers are now real: Pending Escrow (escrowed/delivered
@@ -4638,7 +4721,7 @@ var DISPUTE_STATUS_META = {
 var ADMIN_DISPUTES = [];
 async function loadAdminDisputes(){
   var { data, error } = await sb.from('disputes')
-    .select('id,order_id,raised_by,reason,status,admin_notes,created_at,resolved_at,orders(id,amount,status,buyer_email,vendor_id,payment_links(item_name))')
+    .select('id,order_id,raised_by,reason,status,admin_notes,created_at,resolved_at,orders(id,amount,status,buyer_email,vendor_id,shipment_photo_url,payment_links(item_name))')
     .order('created_at', { ascending: false });
   if(error){ console.error('loadAdminDisputes failed', error); ADMIN_DISPUTES = []; return; }
   ADMIN_DISPUTES = data || [];
@@ -4690,9 +4773,24 @@ async function openAdminDispute(id){
     + '<div class="line-item total"><span>Amount held</span><b>₦'+Number(d.orders?d.orders.amount:0).toLocaleString()+'</b></div>'
     + '<p class="muted" style="margin-top:12px;">'+d.reason+'</p>'
     + (d.admin_notes ? '<div class="protection-box" style="margin-top:12px;"><span>🛡️</span><p><b>Recorded resolution:</b> '+d.admin_notes+'</p></div>' : '')
+    + '<div style="margin-top:14px;"><b style="font-size:12.5px;">📦 Vendor\'s photo before shipping:</b><div id="adminShipmentPhotoBox" style="margin-top:6px;"><span class="muted" style="font-size:11px;">Loading…</span></div></div>'
     + '<div class="b-timeline" style="margin-top:18px;">'+renderDisputeTimelineHTML(events)+'</div>'
     + actionsHtml;
   attachDisputeEvidenceImages(document.getElementById('adminDisputeDetail'), events);
+  loadAdminShipmentPhoto(d.orders && d.orders.shipment_photo_url);
+}
+/* The vendor's pre-shipping photo (item 6) shown alongside the buyer's own
+   dispute evidence (already inline in the timeline above via
+   attachDisputeEvidenceImages) -- this is what actually lets admin compare
+   both photos on one screen when judging a case. Same private-bucket +
+   signed-URL pattern as vendor-selfies and dispute-evidence. */
+async function loadAdminShipmentPhoto(path){
+  var box = document.getElementById('adminShipmentPhotoBox');
+  if(!box) return;
+  if(!path){ box.innerHTML = '<span class="muted" style="font-size:11px;">Vendor hasn\'t marked this order as shipped yet.</span>'; return; }
+  var { data, error } = await sb.storage.from('shipment-photos').createSignedUrl(path, 300);
+  if(error || !data){ box.innerHTML = '<span class="muted" style="font-size:11px;">Could not load shipment photo.</span>'; return; }
+  box.innerHTML = '<img src="'+data.signedUrl+'" alt="Vendor shipment photo" style="max-width:220px; border-radius:10px; border:1px solid var(--border); display:block;">';
 }
 async function adminMarkDisputeUnderReview(id){
   var { error } = await sb.from('disputes').update({ status: 'under_review' }).eq('id', id);
